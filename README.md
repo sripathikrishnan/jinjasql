@@ -8,7 +8,7 @@ of all parameters that can be used to execute the query.
 ```python
 
 # Import the package
-from jinja2sql import JinjaSql
+from jinjasql import JinjaSql
 
 # This is the main class that wraps a Jinja Environment
 j = JinjaSql()
@@ -42,6 +42,7 @@ expected_query = """
     SELECT project, timesheet, hours
     FROM timesheet
     WHERE user_id = %s
+    
     AND project_id = %s
 """
 
