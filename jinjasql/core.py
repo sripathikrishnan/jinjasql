@@ -29,8 +29,12 @@ class SqlExtension(Extension):
                     token = next(stream)
                 variable_end = token
 
-                var_expr.append(Token(10, 'pipe', u'|'))
-                var_expr.append(Token(10, 'name', u'bind'))
+                last_token = var_expr[-1]
+                if (not last_token.test("name") 
+                    or not last_token.value in ('bind', 'inclause')):
+                    # don't bind twice
+                    var_expr.append(Token(10, 'pipe', u'|'))
+                    var_expr.append(Token(10, 'name', u'bind'))
 
                 var_expr.append(variable_end)
 
@@ -62,8 +66,23 @@ def bind(value):
     """
     if isinstance(value, SqlSafe):
         return value
-    _thread_local.bind_params.append(value)
+    elif requires_in_clause(value):
+        raise Exception("""Got a list or tuple. 
+            Did you forget to apply '|inclause' to your query?""")
+    else:
+        _thread_local.bind_params.append(value)
     return "%s"
+
+def bind_in_clause(value):
+    values = list(value)
+    clause = ",".join(['%s'] * len(values))
+    clause = "(" + clause + ")"
+    for v in values:
+        _thread_local.bind_params.append(v)
+    return clause
+
+def requires_in_clause(obj):
+    return hasattr(obj, '__iter__')
 
 class JinjaSql(object):
     def __init__(self, env=None):
@@ -74,6 +93,7 @@ class JinjaSql(object):
         self.env.add_extension(SqlExtension)
         self.env.filters["bind"] = bind
         self.env.filters["sqlsafe"] = sql_safe
+        self.env.filters["inclause"] = bind_in_clause
 
     def prepare_query(self, source, data):
         template = self.env.from_string(source)

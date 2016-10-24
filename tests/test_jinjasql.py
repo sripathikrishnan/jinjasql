@@ -11,6 +11,9 @@ _DATA = {
     },
     "request": {
         "project_id": 123,
+        "days": ["mon", "tue", "wed", "thu", "fri"],
+        "day": "mon"
+
     },
     "session": {
         "user_id": u"sripathi"
@@ -18,6 +21,9 @@ _DATA = {
 }
 
 class JinjaSqlTest(unittest.TestCase):
+    def setUp(self):
+        self.j = JinjaSql()
+
     def test_bind_params(self):
         source = """
             SELECT project, timesheet, hours
@@ -25,14 +31,12 @@ class JinjaSqlTest(unittest.TestCase):
             WHERE project_id = {{request.project_id}} 
             and user_id = {{ session.user_id }}
         """
-        j = JinjaSql()
-        query, bind_params = j.prepare_query(source, _DATA)
+        query, bind_params = self.j.prepare_query(source, _DATA)
         self.assertEquals(bind_params, [123, u'sripathi'])
 
     def test_sqlsafe(self):
         source = """SELECT {{etc.columns | sqlsafe}} FROM timesheet"""
-        j = JinjaSql()
-        query, bind_params = j.prepare_query(source, _DATA)
+        query, bind_params = self.j.prepare_query(source, _DATA)
         self.assertEquals(query, "SELECT project, timesheet, hours FROM timesheet")
 
     def test_macro(self):
@@ -55,8 +59,7 @@ class JinjaSqlTest(unittest.TestCase):
         AND project_id =  %s
         AND fixed_column = %s"""
 
-        j = JinjaSql()
-        query, bind_params = j.prepare_query(source, _DATA)
+        query, bind_params = self.j.prepare_query(source, _DATA)
 
         self.assertEquals(query.strip(), query.strip())
         self.assertEquals(bind_params, [123, u'sripathi'])
@@ -65,9 +68,22 @@ class JinjaSqlTest(unittest.TestCase):
         """Check that jinja doesn't escape HTML characters"""
 
         source = """select 'x' from dual where X {{etc.lt | sqlsafe}} 1"""
-        j = JinjaSql()
-        query, bind_params = j.prepare_query(source, _DATA)
+        query, bind_params = self.j.prepare_query(source, _DATA)
         self.assertEquals(query, "select 'x' from dual where X < 1")
+
+    def test_explicit_in_clause(self):
+        source = """select * from timesheet 
+                    where day in {{request.days | inclause}}"""
+        query, bind_params = self.j.prepare_query(source, _DATA)
+        self.assertEquals(query, """select * from timesheet 
+                    where day in (%s,%s,%s,%s,%s)""")
+        self.assertEquals(bind_params, ["mon", "tue", "wed", "thu", "fri"])
+
+
+    def test_missed_inclause_raises_exception(self):
+        source = """select * from timesheet 
+                    where day in {{request.days}}"""
+        self.assertRaises(Exception, self.j.prepare_query, source, _DATA)
 
 if __name__ == '__main__':
     unittest.main()
