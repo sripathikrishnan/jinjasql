@@ -66,10 +66,7 @@ def bind(value):
 
 class JinjaSql(object):
     def __init__(self, env=None):
-        if env:
-            self.env = env
-        else:
-            self.env = Environment()
+        self.env = env or Environment()
         self._prepare_environment()
 
     def _prepare_environment(self):
