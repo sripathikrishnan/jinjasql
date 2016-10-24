@@ -1,5 +1,7 @@
 # Generate SQL Queries using a Jinja2 Template. #
 
+[![Build Status](https://travis-ci.org/hashedin/jinjasql.svg?branch=master)](https://travis-ci.org/hashedin/jinjasql)
+
 JinjaSql automatically tracks bind parameters, and returns an array
 of all parameters that can be used to execute the query.
 
