@@ -1,2 +1,7 @@
-venv
+.project
+.pydevproject
 *.pyc
+build/
+dist/
+jinja2sql.egg-info/
+venv

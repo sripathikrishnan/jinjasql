@@ -60,10 +60,9 @@ class JinjaSqlTest(unittest.TestCase):
         self.assertEquals(query.strip(), query.strip())
         self.assertEquals(bind_params, [123, u'sripathi'])
 
-
     def test_html_escape(self):
         """Check that jinja doesn't escape HTML characters"""
-        
+
         source = """select 'x' from dual where X {{etc.lt | sqlsafe}} 1"""
         j = JinjaSql()
         query, bind_params = j.prepare_query(source, _DATA)
