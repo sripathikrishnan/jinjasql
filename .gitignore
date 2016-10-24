@@ -3,5 +3,5 @@
 *.pyc
 build/
 dist/
-jinja2sql.egg-info/
+jinjasql.egg-info/
 venv

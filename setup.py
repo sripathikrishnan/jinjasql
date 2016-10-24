@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import os
-from rdbtools import __version__
+from jinjasql import __version__
 
 long_description = '''
 Generate SQL Queries using a Jinja2 Template.
@@ -24,6 +24,9 @@ sdict = {
     'license' : 'MIT',
     'packages' : ['jinjasql'],
     'test_suite' : 'tests.all_tests',
+    'install_requires': [
+        'Jinja2>=2.5'
+    ],
     'classifiers' : [
         'Development Status :: 4 - Beta',
         'Environment :: Console',

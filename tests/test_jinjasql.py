@@ -1,5 +1,5 @@
 import unittest
-from jinja2sql import JinjaSql
+from jinjasql import JinjaSql
 
 _DATA = {
     "etc": {
