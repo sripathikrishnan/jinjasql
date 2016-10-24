@@ -2,10 +2,74 @@
 
 [![Build Status](https://travis-ci.org/hashedin/jinjasql.svg?branch=master)](https://travis-ci.org/hashedin/jinjasql)
 
-JinjaSql automatically tracks bind parameters, and returns an array
-of all parameters that can be used to execute the query.
+JinjaSQL is a template language for SQL statements and scripts. 
+Since it's based in [Jinja2](http://jinja.pocoo.org/), 
+you have all the power it offers - conditional statements, macros,
+looping constructs, blocks, inheritance, and many more.
 
-## Usage ##
+The key feature of JinjaSQL is automatic and default bind parameters.
+Every variable that is used in your template is automatically detected
+and converted into a bind parameter. Thus, the output of JinjaSQL is a 
+sql statement with %s place holders, and a list of values that correspond 
+to these place holders. 
+
+For example, if you have a template like this -
+
+```sql    
+select username, sum(spend)
+from transactions
+where start_date > {{request.start_date}}
+and end_date < {{request.end_date}}
+{% if request.organization %}
+and organization = {{request.organization}}
+{% endif %}
+```
+
+then, depending on the parameters you provide, you get a query
+
+```sql
+select username, sum(spend)
+from transaction
+where start_date > %s
+and end_date < %s
+and organization = %s
+```
+with bind parameters = ['2016-10-10', '2016-10-20', 1321]
+
+If organization was empty/falsy, the corresponding and clause
+would be absent from the query, and the list of bind parameters
+would not have the organization id.
+
+
+Another benefit of JinjaSQL is externalization. Code littered with
+SQL statements is difficult to read. A common approach is to externalize
+the query, but build the dynamic portions in code. This is error-prone.
+With JinjaSQL, you can externalize the query building logic completely
+to a template file.
+
+
+## When to use JinjaSQL ##
+
+JinjaSQL is *not* meant to replace your ORM. ORMs like those provided
+by SQLAlchemy or Django are great for a variety of use cases, and should
+be the default in most cases. But there are a few use cases where 
+you really need the power of SQL.
+
+Use JinjaSQL for - 
+
+1. Reporting, business intelligence or dashboard like use cases
+1. When you need aggregation/group by
+1. Use cases that require data from multiple tables
+1. Migration scripts & bulk updates that would benefit from macros
+
+In all other use cases, you should reach to your ORM 
+instead of writing SQL/JinjaSQL.
+
+While JinjaSQL can handle insert/update statements, you are better off
+using your ORM to handle such statements. JinjaSQL is mostly meant 
+for dynamic select statements that an ORM cannot handle as well.
+
+## Basic Usage ##
 
 ```python
 
