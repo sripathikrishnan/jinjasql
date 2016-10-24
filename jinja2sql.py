@@ -69,7 +69,7 @@ class JinjaSql(object):
         if env:
             self.env = env
         else:
-            self.env = Environment(autoescape=False)
+            self.env = Environment()
         self._prepare_environment()
 
     def _prepare_environment(self):
