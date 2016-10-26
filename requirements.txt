@@ -1,2 +1,2 @@
 Jinja2>=2.5
-Django>=1.10
+Django>=1.7,<1.8
