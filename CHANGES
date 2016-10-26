@@ -3,3 +3,6 @@
 
 * 0.1.1
     * Treats macro output as safe, so invoking the macro doesn't require a |sqlsafe filter
+
+* 0.1.2
+    * Fix https://github.com/hashedin/jinjasql/issues/2
