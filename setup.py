@@ -3,10 +3,16 @@ import os
 from jinjasql import __version__
 
 long_description = '''
-Generate SQL Queries using a Jinja2 Template.
+Generate SQL Queries using a Jinja Template, without worrying about SQL Injection
 
-JinjaSql automatically tracks bind parameters, and returns an array
-of all parameters that can be used to execute the query.
+JinjaSQL automatically binds parameters that are inserted into the template.
+After JinjaSQL evaluates the template, you get 1) Query with placeholders
+for parameters, and 2) List of values that need to be bound to the query. 
+
+JinjaSQL doesn't actually execute the query - it only prepares the 
+query and the bind parameters. You can execute the query using any 
+database engine / driver you are working with.
+
 '''
 
 sdict = {

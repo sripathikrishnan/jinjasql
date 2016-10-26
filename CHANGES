@@ -1,2 +1,5 @@
 * 0.1.0
     * Initial Release
+
+* 0.1.1
+    * Treats macro output as safe, so invoking the macro doesn't require a |sqlsafe filter
