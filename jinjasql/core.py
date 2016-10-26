@@ -8,6 +8,15 @@ from jinja2.utils import Markup
 from threading import local
 _thread_local = local()
 
+class JinjaSqlException(Exception):
+    pass
+
+class MissingInClauseException(JinjaSqlException):
+    pass
+
+class InvalidBindParameterException(JinjaSqlException):
+    pass
+
 class SqlExtension(Extension):
     def filter_stream(self, stream):
         """
@@ -59,8 +68,13 @@ def bind(value):
     if isinstance(value, Markup):
         return value
     elif requires_in_clause(value):
-        raise Exception("""Got a list or tuple. 
+        raise MissingInClauseException("""Got a list or tuple. 
             Did you forget to apply '|inclause' to your query?""")
+    elif is_dictionary(value):
+        raise InvalidBindParameterException("""
+            Got a dictionary when trying to bind parameter, expected 
+            a scalar value.
+            """)
     else:
         _thread_local.bind_params.append(value)
     return "%s"
@@ -74,7 +88,10 @@ def bind_in_clause(value):
     return clause
 
 def requires_in_clause(obj):
-    return hasattr(obj, '__iter__')
+    return isinstance(obj, (list, tuple))
+
+def is_dictionary(obj):
+    return isinstance(obj, dict)
 
 class JinjaSql(object):
     def __init__(self, env=None):
@@ -96,7 +113,7 @@ class JinjaSql(object):
     def _prepare_query(self, template, data):
         try:
             _thread_local.bind_params = []
-            query = template.render(**data)
+            query = template.render(data)
             bind_params = _thread_local.bind_params
             return query, bind_params
         finally:

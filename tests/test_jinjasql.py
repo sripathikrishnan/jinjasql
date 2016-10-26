@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 import unittest
 from jinjasql import JinjaSql
+from jinjasql.core import MissingInClauseException, InvalidBindParameterException
 from datetime import date
 
 _DATA = {
@@ -11,6 +12,10 @@ _DATA = {
 
     },
     "request": {
+        "project": {
+            "id": 123,
+            "name": "Acme Project"
+        },
         "project_id": 123,
         "days": ["mon", "tue", "wed", "thu", "fri"],
         "day": "mon",
@@ -83,7 +88,12 @@ class JinjaSqlTest(unittest.TestCase):
     def test_missed_inclause_raises_exception(self):
         source = """select * from timesheet 
                     where day in {{request.days}}"""
-        self.assertRaises(Exception, self.j.prepare_query, source, _DATA)
+        self.assertRaises(MissingInClauseException, self.j.prepare_query, source, _DATA)
+
+    def test_inclause_with_dictionary(self):
+        source = """select * from timesheet 
+                    where project in {{request.project}}"""
+        self.assertRaises(InvalidBindParameterException, self.j.prepare_query, source, _DATA)
 
     def test_macro_output_is_marked_safe(self):
         source = """
