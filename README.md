@@ -1,4 +1,4 @@
-# Generate SQL Queries using a Jinja2 Template. #
+# Generate SQL Queries using a Jinja Template, without worrying about SQL Injection #
 
 [![Build Status](https://travis-ci.org/hashedin/jinjasql.svg?branch=master)](https://travis-ci.org/hashedin/jinjasql)
 
@@ -7,11 +7,14 @@ Since it's based in [Jinja2](http://jinja.pocoo.org/),
 you have all the power it offers - conditional statements, macros,
 looping constructs, blocks, inheritance, and many more.
 
-The key feature of JinjaSQL is automatic and default bind parameters.
-Every variable that is used in your template is automatically detected
-and converted into a bind parameter. Thus, the output of JinjaSQL is a 
-sql statement with %s place holders, and a list of values that correspond 
-to these place holders. 
+JinjaSQL automatically binds parameters that are inserted into the template.
+After JinjaSQL evaluates the template, you get 
+1. A Query with %s placeholders for the parameters
+2. A List of values corresponding to the placeholdersthat need to be bound to the query
+
+JinjaSQL doesn't actually execute the query - it only prepares the 
+query and the bind parameters. You can execute the query using any 
+database engine / driver you are working with.
 
 For example, if you have a template like this -
 
@@ -36,17 +39,15 @@ and organization = %s
 ```
 with bind parameters = ['2016-10-10', '2016-10-20', 1321]
 
-If organization was empty/falsy, the corresponding and clause
+If `request.organization` was empty/falsy, the corresponding and clause
 would be absent from the query, and the list of bind parameters
 would not have the organization id.
 
+## Why should I use JinjaSQL? ##
 
-Another benefit of JinjaSQL is externalization. Code littered with
-SQL statements is difficult to read. A common approach is to externalize
-the query, but build the dynamic portions in code. This is error-prone.
-With JinjaSQL, you can externalize the query building logic completely
-to a template file.
+SQL code has a lot of repetition. With JinjaSQL, you can eliminate repetition and keep your SQL [DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself). 
 
+JinjaSQL lets you externalize your queries. You can keep your templates in files, in databases or in S3 or any place that makes sense for your application. 
 
 ## When to use JinjaSQL ##
 
