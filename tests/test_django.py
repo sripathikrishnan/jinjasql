@@ -1,6 +1,10 @@
 from django.test import TestCase, RequestFactory
 from jinjasql import JinjaSql
+import sys
+import unittest
 
+@unittest.skipIf(sys.version_info < (2, 7), 
+    "django version not supported in python 2.6.x")
 class DjangoTest(TestCase):
     def test_django_request_as_context(self):
         request = RequestFactory().get('/customer/details/?customer=1232&enterprise=9875')
