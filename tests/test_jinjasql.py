@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 import unittest
 from jinjasql import JinjaSql
+from datetime import date
 
 _DATA = {
     "etc": {
@@ -12,8 +13,8 @@ _DATA = {
     "request": {
         "project_id": 123,
         "days": ["mon", "tue", "wed", "thu", "fri"],
-        "day": "mon"
-
+        "day": "mon",
+        "start_date": date.today(),
     },
     "session": {
         "user_id": u"sripathi"
@@ -47,9 +48,9 @@ class JinjaSqlTest(unittest.TestCase):
         SELECT 'x' from dual
         WHERE 1=1 
         {{ OPTIONAL_AND(request.project_id != -1, 
-            "project_id = ", request.project_id) | sqlsafe }}
+            "project_id = ", request.project_id)}}
         {{ OPTIONAL_AND(request.unknown_column, 
-            "some_column = ", request.unknown_column) | sqlsafe -}}
+            "some_column = ", request.unknown_column) -}}
         AND fixed_column = {{session.user_id}}
         """
 
@@ -79,11 +80,34 @@ class JinjaSqlTest(unittest.TestCase):
                     where day in (%s,%s,%s,%s,%s)""")
         self.assertEquals(bind_params, ["mon", "tue", "wed", "thu", "fri"])
 
-
     def test_missed_inclause_raises_exception(self):
         source = """select * from timesheet 
                     where day in {{request.days}}"""
         self.assertRaises(Exception, self.j.prepare_query, source, _DATA)
+
+    def test_macro_output_is_marked_safe(self):
+        source = """
+        {% macro week(value) -%}
+        some_sql_function({{value}})
+        {%- endmacro %}
+        SELECT 'x' from dual WHERE created_date > {{ week(request.start_date) }}
+        """
+        query, bind_params = self.j.prepare_query(source, _DATA)
+        expected_query = "SELECT 'x' from dual WHERE created_date > some_sql_function(%s)"
+        self.assertEquals(query.strip(), expected_query.strip())
+        self.assertEquals(len(bind_params), 1)
+        self.assertEquals(bind_params[0], date.today())
+    
+    def test_set_block(self):
+        source = """
+        {% set columns -%}
+        project, timesheet, hours
+        {%- endset %}
+        select {{ columns | sqlsafe }} from dual
+        """
+        query, bind_params = self.j.prepare_query(source, _DATA)
+        expected_query = "select project, timesheet, hours from dual"
+        self.assertEquals(query.strip(), expected_query.strip())
 
 if __name__ == '__main__':
     unittest.main()

@@ -3,6 +3,7 @@ from jinja2 import Environment
 from jinja2 import Template
 from jinja2.ext import Extension
 from jinja2.lexer import Token
+from jinja2.utils import Markup
 
 from threading import local
 _thread_local = local()
@@ -31,7 +32,7 @@ class SqlExtension(Extension):
 
                 last_token = var_expr[-1]
                 if (not last_token.test("name") 
-                    or not last_token.value in ('bind', 'inclause')):
+                    or not last_token.value in ('bind', 'inclause', 'sqlsafe')):
                     # don't bind twice
                     var_expr.append(Token(10, 'pipe', u'|'))
                     var_expr.append(Token(10, 'name', u'bind'))
@@ -43,19 +44,10 @@ class SqlExtension(Extension):
             else:
                 yield token
 
-class SqlSafe:
-    """Marker class to indicate the string 
-    is safe to be inserted in a SQL Query"""
-    def __init__(self, value):
-        self.value = value
-
-    def __str__(self):
-        return self.value
-
 def sql_safe(value):
     """Filter to mark the value of an expression as safe for inserting
     in a SQL statement"""
-    return SqlSafe(value)
+    return Markup(value)
 
 def bind(value):
     """A filter that prints %s, and stores the value 
@@ -64,7 +56,7 @@ def bind(value):
     This filter is automatically applied to every {{variable}} 
     during the lexing stage, so developers can't forget to bind
     """
-    if isinstance(value, SqlSafe):
+    if isinstance(value, Markup):
         return value
     elif requires_in_clause(value):
         raise Exception("""Got a list or tuple. 
@@ -90,7 +82,9 @@ class JinjaSql(object):
         self._prepare_environment()
 
     def _prepare_environment(self):
+        self.env.autoescape=True
         self.env.add_extension(SqlExtension)
+        self.env.add_extension('jinja2.ext.autoescape')
         self.env.filters["bind"] = bind
         self.env.filters["sqlsafe"] = sql_safe
         self.env.filters["inclause"] = bind_in_clause
