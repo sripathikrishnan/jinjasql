@@ -1,6 +1,14 @@
 #!/usr/bin/env python
 import os
-from jinjasql import __version__
+
+# Duplicating version from jinjasql.__init__.py
+# We can't directly import it from jinjasql,
+# because during installation Jinja2 isn't installed as yet
+# 
+# There are several approaches to eliminate this redundancy,
+# see https://packaging.python.org/single_source_version/
+# but for now, we will simply maintain it in two places
+__version__ = '0.1.3'
 
 long_description = '''
 Generate SQL Queries using a Jinja Template, without worrying about SQL Injection
@@ -30,6 +38,9 @@ sdict = {
     'license' : 'MIT',
     'packages' : ['jinjasql'],
     'test_suite' : 'tests.all_tests',
+    'install_requires': [
+        'Jinja2>=2.5'
+    ],
     'classifiers' : [
         'Development Status :: 4 - Beta',
         'Environment :: Console',
