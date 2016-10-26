@@ -6,7 +6,7 @@ def all_tests():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(JinjaSqlTest))
 
-    if sys.version_info >= (2, 7):
+    if sys.version_info >= (2, 7) and sys.version_info <= (3, 4):
         from tests.test_django import DjangoTest
         suite.addTest(unittest.makeSuite(DjangoTest))
 
