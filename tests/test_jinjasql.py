@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 import unittest
+from jinja2 import DictLoader
+from jinja2 import Environment
 from jinjasql import JinjaSql
 from jinjasql.core import MissingInClauseException, InvalidBindParameterException
 from datetime import date
@@ -118,6 +120,57 @@ class JinjaSqlTest(unittest.TestCase):
         query, bind_params = self.j.prepare_query(source, _DATA)
         expected_query = "select project, timesheet, hours from dual"
         self.assertEquals(query.strip(), expected_query.strip())
+
+
+    def test_import(self):
+        utils = """
+        {% macro print_where(value) -%}
+        WHERE dummy_col = {{value}}
+        {%- endmacro %}
+        """
+        source = """
+        {% import 'utils.sql' as utils %}
+        select * from dual {{ utils.print_where(100) }}
+        """
+        loader = DictLoader({"utils.sql" : utils})
+        env = Environment(loader=loader)
+
+        j = JinjaSql(env)
+        query, bind_params = j.prepare_query(source, _DATA)
+        expected_query = "select * from dual WHERE dummy_col = %s"
+        self.assertEquals(query.strip(), expected_query.strip())
+        self.assertEquals(len(bind_params), 1)
+        self.assertEquals(bind_params[0], 100)
+
+    def test_include(self):
+        where_clause = """where project_id = {{request.project_id}}"""
+        
+        source = """
+        select * from dummy {% include 'where_clause.sql' %}
+        """
+        loader = DictLoader({"where_clause.sql" : where_clause})
+        env = Environment(loader=loader)
+
+        j = JinjaSql(env)
+        query, bind_params = j.prepare_query(source, _DATA)
+        expected_query = "select * from dummy where project_id = %s"
+        self.assertEquals(query.strip(), expected_query.strip())
+        self.assertEquals(len(bind_params), 1)
+        self.assertEquals(bind_params[0], 123)
+
+    def test_python_format_binds_parameters(self):
+        # not sure why someone would want to use string format
+        # in a jinja template...
+        # but we need to make sure it doesn't bypass
+        # bind parameters.
+        source = """
+        select {{ "%s-%s" | format("hi", "there")}}
+        """
+        query, bind_params = self.j.prepare_query(source, _DATA)
+        expected_query = "select %s"
+        self.assertEquals(query.strip(), expected_query.strip())
+        self.assertEquals(len(bind_params), 1)
+        self.assertEquals(bind_params[0], "hi-there")
 
 if __name__ == '__main__':
     unittest.main()
