@@ -44,12 +44,6 @@ If `request.organization` was empty/falsy, the corresponding and clause
 would be absent from the query, and the list of bind parameters
 would not have the organization id.
 
-## Why should I use JinjaSQL? ##
-
-SQL code has a lot of repetition. With JinjaSQL, you can eliminate repetition and keep your SQL [DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself). 
-
-JinjaSQL lets you externalize your queries. You can keep your templates in files, in databases or in S3 or any place that makes sense for your application. 
-
 ## When to use JinjaSQL ##
 
 JinjaSQL is *not* meant to replace your ORM. ORMs like those provided
@@ -73,16 +67,16 @@ for dynamic select statements that an ORM cannot handle as well.
 
 ## Basic Usage ##
 
+First, import the `JinjaSql` class and create an object. `JinjaSql` is thread-safe, so you can safely create one object at startup and use it everywhere.
+
 ```python
-
-# Import the package
 from jinjasql import JinjaSql
-
-# This is the main class that wraps a Jinja Environment
 j = JinjaSql()
+```
 
-# This is the template query
-# You can use the full power of Jinja here - macros, conditions, loops what-have-you
+Next, create your template query. You can use the full power of Jinja templates over here - macros, includes, imports, if/else conditions, loops, filters and so on. You can load the template from a file or from database or wherever else Jinja supports.
+
+```python
 template = """
     SELECT project, timesheet, hours
     FROM timesheet
@@ -91,21 +85,28 @@ template = """
     AND project_id = {{ project_id }}
     {% endif %}
 """
+```
 
-# This is the context that is passed to Jinja template
-# It can contain lists, nested objects, even functions
+Create a context object. This object is a regular dictionary, and can contain nested dictionaries, lists or objects. The template query is evaluated against this context object.
+
+```python
 data = {
     "project_id": 123,
     "user_id": u"sripathi"
 }
+```
 
-# This is the core of this library
-# `query` is the generated SQL query. Variables are replaced by %s
-# `bind_params` is an array of parameters corresponding to the %s
+Finally, call the `prepare_query` method with the template and the context. You get back two things:
 
+1. `query` is the generated SQL query. Variables are replaced by %s
+1. `bind_params` is an array of parameters corresponding to the %s
+
+```python
 query, bind_params = j.prepare_query(template, data)
+```
 
-# This is the query that is generated
+This is the query that is generated:
+```python
 expected_query = """
     SELECT project, timesheet, hours
     FROM timesheet
@@ -113,14 +114,17 @@ expected_query = """
     
     AND project_id = %s
 """
+```
 
-# These are the bind parameters
+And these are the bind parameters:
+```python
 self.assertEquals(bind_params, [u'sripathi', 123])
 self.assertEquals(query.strip(), expected_query.strip())
+```
 
-# You can now use the query and bind parameters to execute the query
-# For example, in django, you would do something like this - 
+You can now use the query and bind parameters to execute the query. For example, in django, you would do something like this:
 
+```python
 from django.db import connection
 with connection.cursor() as cursor:
     cursor.execute(query, bind_params)
