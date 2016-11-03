@@ -154,7 +154,8 @@ At it's core, JinjaSQL provides a filter called `bind`. This filter gobbles up w
 
 ```python
 jinja.prepare_query("select * from user where id = {{userid | bind}}", 
-                    {userid: 143})```
+                    {userid: 143})
+```
 
 When this code is evaluated, the output query is `select * from user where id = %s`. 
 
@@ -165,7 +166,8 @@ Manually applying the `bind` filter to every parameter is error-prone. Sooner th
 JinjaSQL automatically applies the bind filter to ALL variables. The query template is transformed before it is evaluated.
 
 ```sql
-select * from user where id = {{userid}}```
+select * from user where id = {{userid}}
+```
 
 becomes 
 ```sql
