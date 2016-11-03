@@ -8,7 +8,8 @@ you have all the power it offers - conditional statements, macros,
 looping constructs, blocks, inheritance, and many more.
 
 JinjaSQL automatically binds parameters that are inserted into the template.
-After JinjaSQL evaluates the template, you get 
+After JinjaSQL evaluates the template, you get:
+
 1. A Query with %s placeholders for the parameters
 2. A List of values corresponding to the placeholdersthat need to be bound to the query
 
@@ -144,6 +145,41 @@ To install from source :
     git clone https://github.com/hashedin/jinjasql
     cd jinjasql
     sudo python setup.py install
+
+## How does JinjaSQL work? ##
+
+### The bind filter ###
+
+At it's core, JinjaSQL provides a filter called `bind`. This filter gobbles up whatever value is provided, and always emits the placeholder string %s. The actual value is then stored in a thread local list of bind parameters.
+
+```python
+jinja.prepare_query("select * from user where id = {{userid | bind}}", 
+                    {userid: 143})```
+
+When this code is evaluated, the output query is `select * from user where id = %s`. 
+
+### Pre-processing the Query Template ###
+
+Manually applying the `bind` filter to every parameter is error-prone. Sooner than later, a developer will miss the filter, and it will lead to SQL Injection.
+
+JinjaSQL automatically applies the bind filter to ALL variables. The query template is transformed before it is evaluated.
+
+```sql
+select * from user where id = {{userid}}```
+
+becomes 
+```sql
+select * from user where id = {{userid | bind}}
+```
+
+Jinja lets extensions to [rewrite the token stream](http://jinja.pocoo.org/docs/dev/extensions/#jinja2.ext.Extension.filter_stream). JinjaSQL looks for `variable_begin` and `variable_end` tokens in the stream, and rewrites the stream to include the `bind` filter as the last filter.
+
+### Autoescape and JinjaSQL ###
+
+Jinja has an autoescape feature. If turned on, it automatically HTML escapes variables. It does this by wrapping strings using the `Markup` class.
+
+JinjaSQL builds on this functionality. JinjaSQL requires autoescape to be turned on. As a result, strings that are injected are wrapped using the Markup class. JinjaSQL uses this wrapper class as well to prevent double-binding of parameters.
+
 
 ## License
 
