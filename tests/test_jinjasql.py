@@ -121,7 +121,6 @@ class JinjaSqlTest(unittest.TestCase):
         expected_query = "select project, timesheet, hours from dual"
         self.assertEquals(query.strip(), expected_query.strip())
 
-
     def test_import(self):
         utils = """
         {% macro print_where(value) -%}
@@ -171,6 +170,54 @@ class JinjaSqlTest(unittest.TestCase):
         self.assertEquals(query.strip(), expected_query.strip())
         self.assertEquals(len(bind_params), 1)
         self.assertEquals(bind_params[0], "hi-there")
+
+    def test_param_style_numeric(self):
+        source = """
+        select 'x' from dual where project_id = {{request.project_id}} and user_id = {{session.user_id}}
+        """
+        j = JinjaSql(param_style='numeric')
+        query, bind_params = j.prepare_query(source, _DATA)
+        expected_query = "select 'x' from dual where project_id = :1 and user_id = :2"
+        self.assertEquals(query.strip(), expected_query.strip())
+        self.assertEquals(len(bind_params), 2)
+        self.assertEquals(bind_params[0], 123)
+        self.assertEquals(bind_params[1], "sripathi")
+
+    def test_param_style_qmark(self):
+        source = """
+        select 'x' from dual where project_id = {{request.project_id}} and user_id = {{session.user_id}}
+        """
+        j = JinjaSql(param_style='qmark')
+        query, bind_params = j.prepare_query(source, _DATA)
+        expected_query = "select 'x' from dual where project_id = ? and user_id = ?"
+        self.assertEquals(query.strip(), expected_query.strip())
+        self.assertEquals(len(bind_params), 2)
+        self.assertEquals(bind_params[0], 123)
+        self.assertEquals(bind_params[1], "sripathi")
+
+    def test_param_style_named(self):
+        source = """
+        select 'x' from dual where project_id = {{request.project_id}} and user_id = {{session.user_id}}
+        """
+        j = JinjaSql(param_style='named')
+        query, bind_params = j.prepare_query(source, _DATA)
+        expected_query = "select 'x' from dual where project_id = :request.project_id and user_id = :session.user_id"
+        self.assertEquals(query.strip(), expected_query.strip())
+        self.assertEquals(len(bind_params), 2)
+        self.assertEquals(bind_params['request.project_id'], 123)
+        self.assertEquals(bind_params['session.user_id'], "sripathi")
+
+    def test_param_style_pyformat(self):
+        source = """
+        select 'x' from dual where project_id = {{request.project_id}} and user_id = {{session.user_id}}
+        """
+        j = JinjaSql(param_style='pyformat')
+        query, bind_params = j.prepare_query(source, _DATA)
+        expected_query = "select 'x' from dual where project_id = %(request.project_id)s and user_id = %(session.user_id)s"
+        self.assertEquals(query.strip(), expected_query.strip())
+        self.assertEquals(len(bind_params), 2)
+        self.assertEquals(bind_params['request.project_id'], 123)
+        self.assertEquals(bind_params['session.user_id'], "sripathi")
 
 if __name__ == '__main__':
     unittest.main()
