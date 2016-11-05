@@ -128,6 +128,48 @@ with connection.cursor() as cursor:
         pass
 ```
 
+## Multiple Param Styles ##
+Per PEP-249, bind parameters can be specified in multiple ways. 
+You can pass the optional constructor argument `param_style` to control
+the style of query parameter.
+
+1. *format* : `... where name = %s`. This is the default
+1. *qmark* :  `where name = ?`
+1. *numeric* : `where name = :1 and last_name = :2`
+1. *named* : `where name = :name and last_name = :last_name`
+1. *pyformat* : `where name = %(name)s and last_name = %(last_name)s`
+
+`named` and `pyformat` behave slightly differently: 
+
+1. `prepare_query` returns a dictionary instead of a list
+1. The returned dictionary is flat, and only contains keys that are actually used in the query
+1. The keys in the dictionary and in the query are guaranteed to have unique names. Even if you bind the same parameter twice, the key will be renamed
+
+
+## Handling In Clauses ##
+If you bind a list or tuple in query, JinjaSQL will raise 
+a `MissingInClauseException`. JinjaSQL needs manual intervention - you have to apply the `|inclause` filter.
+
+```sql
+select 'x' from dual
+where project_id in {{ project_ids | inclause }}
+```
+Notice that you don't need to enclose in parantheses.
+
+JinjaSQL will automatically create the appropriate number of bind expressions.
+
+## SQL Safe Strings ##
+Sometimes, you want to insert dynamic table names/column names. By default, JinjaSQL will convert them to bind parameters. This won't work, because table and column names are usually not allowed in bind 
+parameters.
+
+In such cases, you can use the `|sqlsafe` filter. 
+
+```sql
+select {{column_names | sqlsafe}} from dual
+```
+
+If you use `sqlsafe`, it is your responsibility to ensure there is no sql injection.
+
 ## Installing jinjasql ##
 
 Pre-Requisites : 
