@@ -5,6 +5,11 @@ from jinja2 import Environment
 from jinjasql import JinjaSql
 from jinjasql.core import MissingInClauseException, InvalidBindParameterException
 from datetime import date
+from yaml import load_all
+from os.path import dirname, abspath, join
+
+
+YAML_TESTS_ROOT = join(dirname(abspath(__file__)), "yaml")
 
 _DATA = {
     "etc": {
@@ -218,6 +223,29 @@ class JinjaSqlTest(unittest.TestCase):
         self.assertEquals(len(bind_params), 2)
         self.assertEquals(bind_params['request.project_id'], 123)
         self.assertEquals(bind_params['session.user_id'], "sripathi")
+
+    def test_via_yaml(self):
+        file_path = join(YAML_TESTS_ROOT, "macros.yaml")
+        with open(file_path) as f:
+            configs = load_all(f)
+            for config in configs:
+                self._test_internal(config)
+    
+    def _test_internal(self, config):
+        source = config['template']
+        test_name = config['name']
+        for param_style, expected_sql in config['expected_sql'].iteritems():
+            jinja = JinjaSql(param_style=param_style)
+            query, bind_params = jinja.prepare_query(source, _DATA)
+
+            if 'expected_params' in config:
+                if param_style in ('pyformat', 'named'):
+                    expected_params = config['expected_params']['as_dict']
+                else:
+                    expected_params = config['expected_params']['as_list']
+                self.assertEquals(bind_params, expected_params, test_name)
+
+            self.assertEquals(query.strip(), expected_sql.strip())
 
 if __name__ == '__main__':
     unittest.main()

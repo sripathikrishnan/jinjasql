@@ -1,0 +1,94 @@
+---
+name: test_bind_parameters
+template: >
+    SELECT project, timesheet, hours
+    FROM timesheet
+    WHERE project_id = {{request.project_id}} 
+    and user_id = {{ session.user_id }}
+expected_sql: 
+    format: >
+        SELECT project, timesheet, hours
+        FROM timesheet
+        WHERE project_id = %s 
+        and user_id = %s
+expected_params:
+    as_list: [123, 'sripathi']
+
+---
+name: test_sqlsafe_filter
+template: SELECT {{etc.columns | sqlsafe}} FROM timesheet
+expected_sql:
+    format: SELECT project, timesheet, hours FROM timesheet
+
+---
+name: test_html_characters_are_not_escaped
+template: select 'x' from dual where X {{etc.lt | sqlsafe}} 1
+expected_sql:
+    format: select 'x' from dual where X < 1
+
+---
+name: test_inclause_filter
+template: >
+    select * from timesheet 
+    where day in {{request.days | inclause}}
+expected_sql:
+    format: >
+        select * from timesheet 
+        where day in (%s,%s,%s,%s,%s)
+
+---
+name: Check macros doesn't escape
+template: >
+    {% macro OPTIONAL_AND(condition, expression, value) -%}
+        {%- if condition -%}AND {{expression | sqlsafe}}{{value}} {%- endif-%}
+    {%- endmacro -%}
+    SELECT 'x' from dual
+    WHERE 1=1
+    {{ OPTIONAL_AND(request.project_id != -1,
+        "project_id = ", request.project_id)}}
+    {{ OPTIONAL_AND(request.unknown_column,
+        "some_column = ", request.unknown_column) -}}
+    AND fixed_column = {{session.user_id}}
+expected_params: 
+    as_list: [123, 'sripathi']
+    as_dict: {"request.project_id": 123, "session.user_id": u'sripathi'}
+expected_sql:
+    format: >
+        SELECT 'x' from dual
+        WHERE 1=1
+        AND project_id = %s
+
+        AND fixed_column = %s
+    qmark: >
+        SELECT 'x' from dual
+        WHERE 1=1
+        AND project_id = ?
+
+        AND fixed_column = ?
+    numeric: >
+        SELECT 'x' from dual
+        WHERE 1=1
+        AND project_id = :1
+
+        AND fixed_column = :2
+
+---
+name: test_macro_output_is_marked_safe
+template: > 
+    {% macro week(value) -%}
+    some_sql_function({{value}})
+    {%- endmacro %}
+    SELECT 'x' from dual WHERE created_date > {{ week(request.start_date) }}
+expected_sql:
+    format: SELECT 'x' from dual WHERE created_date > some_sql_function(%s)
+
+---
+name: test_set_block
+template: >
+    {% set columns -%}
+    project, timesheet, hours
+    {%- endset %}
+    select {{ columns | sqlsafe }} from dual
+expected_sql:
+    format: select project, timesheet, hours from dual
+
