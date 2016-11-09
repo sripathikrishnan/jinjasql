@@ -179,7 +179,7 @@ If you use `sqlsafe`, it is your responsibility to ensure there is no sql inject
 
 Pre-Requisites : 
 
-1. python 2.x and pip.
+1. python 2.6+, or 3.4+, and pip.
 2. jinja2 >= version 2.5
 
 To install from PyPI (recommended) :
