@@ -134,17 +134,26 @@ with connection.cursor() as cursor:
 ```
 
 ## Multiple Param Styles ##
-Per PEP-249, bind parameters can be specified in multiple ways. 
+Per [PEP-249](https://www.python.org/dev/peps/pep-0249/), bind parameters can be specified in multiple ways. 
 You can pass the optional constructor argument `param_style` to control
 the style of query parameter.
 
-1. *format* : `... where name = %s`. This is the default
-1. *qmark* :  `where name = ?`
-1. *numeric* : `where name = :1 and last_name = :2`
-1. *named* : `where name = :name and last_name = :last_name`
-1. *pyformat* : `where name = %(name)s and last_name = %(last_name)s`
+1. **format* : `... where name = %s`. This is the default
+1. **qmark** :  `where name = ?`
+1. **numeric** : `where name = :1 and last_name = :2`
+1. **named** : `where name = :name and last_name = :last_name`
+1. **pyformat** : `where name = %(name)s and last_name = %(last_name)s`
 
-`named` and `pyformat` behave slightly differently: 
+Here's how it works - 
+
+```python
+j = JinjaSql(param_style='named')
+query, bind_params = j.prepare_query(template, data)
+```
+
+If param_style is `named` or `pyformat`, `bind_parameters` will be a python dictionary. For all other param styles, it will be a list.
+
+In case of `named` and `pyformat`, remember the following:
 
 1. `prepare_query` returns a dictionary instead of a list
 1. The returned dictionary is flat, and only contains keys that are actually used in the query
@@ -179,7 +188,7 @@ If you use `sqlsafe`, it is your responsibility to ensure there is no sql inject
 
 Pre-Requisites : 
 
-1. python 2.x and pip.
+1. python 2.7.x, 3.4.x or 3.5.x
 2. jinja2 >= version 2.5
 
 To install from PyPI (recommended) :
