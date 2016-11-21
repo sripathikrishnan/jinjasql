@@ -93,7 +93,7 @@ def generate_yaml_tests():
 def _generate_test(config):
     def yaml_test(self):
         source = config['template']
-        for param_style, expected_sql in config['expected_sql'].iteritems():
+        for (param_style, expected_sql) in config['expected_sql'].items():
             jinja = JinjaSql(param_style=param_style)
             query, bind_params = jinja.prepare_query(source, _DATA)
 
