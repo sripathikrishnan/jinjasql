@@ -2,7 +2,9 @@
 
 import unittest
 from tests import all_tests
+import sys
 
 if __name__ == "__main__":
     tests = all_tests()
-    results = unittest.TextTestRunner().run(tests)
+    ret = not unittest.TextTestRunner().run(tests).wasSuccessful()
+    sys.exit(ret)

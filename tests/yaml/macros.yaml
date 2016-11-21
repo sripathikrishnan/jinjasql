@@ -4,7 +4,7 @@ template: >
     SELECT project, timesheet, hours
     FROM timesheet
     WHERE project_id = {{request.project_id}} 
-    and user_id =  {{ session.user_id }}
+    and user_id = {{ session.user_id }}
 expected_sql: 
     format: >
         SELECT project, timesheet, hours
@@ -35,7 +35,18 @@ expected_sql:
     format: >
         select * from timesheet 
         where day in (%s,%s,%s,%s,%s)
-
+    qmark: >
+        select * from timesheet 
+        where day in (?,?,?,?,?)
+    numeric: >
+        select * from timesheet 
+        where day in (:1,:2,:3,:4,:5)
+    numeric: >
+        select * from timesheet 
+        where day in (:1,:2,:3,:4,:5)
+    numeric: >
+        select * from timesheet 
+        where day in (:1,:2,:3,:4,:5)
 ---
 name: test_macros
 template: >

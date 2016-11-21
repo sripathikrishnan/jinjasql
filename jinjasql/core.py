@@ -12,9 +12,13 @@ except ImportError:
     from ordereddict import OrderedDict
 
 from threading import local
-import random
+from random import Random
 
 _thread_local = local()
+
+# This is mocked in unit tests for deterministic behaviour
+random = Random()
+
 
 class JinjaSqlException(Exception):
     pass
