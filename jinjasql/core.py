@@ -115,7 +115,7 @@ def bind_in_clause(value):
     for v in values:
         results.append(_bind_param(_thread_local.bind_params, "inclause", v))
     
-    clause = ",".join(['%s'] * len(results))
+    clause = ",".join(results)
     clause = "(" + clause + ")"
     return clause
 
