@@ -65,7 +65,7 @@ class JinjaSqlTest(unittest.TestCase):
         expected_query = "select * from dual WHERE dummy_col = %s"
         self.assertEquals(query.strip(), expected_query.strip())
         self.assertEquals(len(bind_params), 1)
-        self.assertEquals(bind_params[0], 100)
+        self.assertEquals(list(bind_params)[0], 100)
 
     def test_include(self):
         where_clause = """where project_id = {{request.project_id}}"""
@@ -81,7 +81,7 @@ class JinjaSqlTest(unittest.TestCase):
         expected_query = "select * from dummy where project_id = %s"
         self.assertEquals(query.strip(), expected_query.strip())
         self.assertEquals(len(bind_params), 1)
-        self.assertEquals(bind_params[0], 123)
+        self.assertEquals(list(bind_params)[0], 123)
 
 def generate_yaml_tests():
     file_path = join(YAML_TESTS_ROOT, "macros.yaml")
