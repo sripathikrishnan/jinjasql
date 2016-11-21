@@ -102,7 +102,7 @@ def _generate_test(config):
                     expected_params = config['expected_params']['as_dict']
                 else:
                     expected_params = config['expected_params']['as_list']
-                self.assertEquals(bind_params, expected_params)
+                self.assertEquals(list(bind_params), expected_params)
 
             self.assertEquals(query.strip(), expected_sql.strip())
 
