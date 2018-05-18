@@ -42,11 +42,6 @@ class JinjaSqlTest(unittest.TestCase):
                     where day in {{request.days}}"""
         self.assertRaises(MissingInClauseException, self.j.prepare_query, source, _DATA)
 
-    def test_inclause_with_dictionary(self):
-        source = """select * from timesheet 
-                    where project in {{request.project}}"""
-        self.assertRaises(InvalidBindParameterException, self.j.prepare_query, source, _DATA)
-
     def test_import(self):
         utils = """
         {% macro print_where(value) -%}
