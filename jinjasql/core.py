@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+import random
 from jinja2 import Environment
 from jinja2 import Template
 from jinja2.ext import Extension
@@ -121,8 +122,7 @@ def bind_in_clause(value):
 
 def _bind_param(already_bound, key, value):
     new_key = key
-    while new_key in already_bound:
-        new_key = "%s_%s" % (key, random.randrange(1, 1000))
+    new_key = "%s#%s" % (key, random.getrandbits(128))
     already_bound[new_key] = value
     
     param_style = _thread_local.param_style
