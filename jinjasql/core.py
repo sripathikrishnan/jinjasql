@@ -101,11 +101,6 @@ def bind(value, name):
     elif requires_in_clause(value):
         raise MissingInClauseException("""Got a list or tuple. 
             Did you forget to apply '|inclause' to your query?""")
-    elif is_dictionary(value):
-        raise InvalidBindParameterException("""
-            Got a dictionary when trying to bind parameter, expected 
-            a scalar value.
-            """)
     else:
         return _bind_param(_thread_local.bind_params, name, value)
     

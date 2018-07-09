@@ -102,4 +102,13 @@ template: >
     select {{ columns | sqlsafe }} from dual
 expected_sql:
     format: select project, timesheet, hours from dual
-
+---
+name: test_dictionary_param
+template: >
+    INSERT INTO projects (info)
+    VALUES({{request.project}})
+expected_sql:
+    format: INSERT INTO projects (info) VALUES(%s)
+expected_params:
+    as_list: [{"id": 123, "name": "Acme Project"}]
+    as_dict: {"request.project": {"id": 123, "name": "Acme Project"}}
