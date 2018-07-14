@@ -1,5 +1,4 @@
 from __future__ import unicode_literals
-import random
 from jinja2 import Environment
 from jinja2 import Template
 from jinja2.ext import Extension
