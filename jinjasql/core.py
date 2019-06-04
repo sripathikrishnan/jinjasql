@@ -131,6 +131,9 @@ def _bind_param(already_bound, key, value):
         return ":%s" % new_key
     elif param_style == 'pyformat':
         return "%%(%s)s" % new_key
+    elif param_style == 'asyncpg':
+        _thread_local.param_index += 1
+        return "$%s" % _thread_local.param_index
     else:
         raise AssertionError("Invalid param_style - %s" % param_style)
 
@@ -147,7 +150,7 @@ class JinjaSql(object):
     # named "where name = :name"
     # format "where name = %s"
     # pyformat "where name = %(name)s"
-    VALID_PARAM_STYLES = ('qmark', 'numeric', 'named', 'format', 'pyformat')
+    VALID_PARAM_STYLES = ('qmark', 'numeric', 'named', 'format', 'pyformat', 'asyncpg')
     def __init__(self, env=None, param_style='format'):
         self.env = env or Environment()
         self._prepare_environment()
