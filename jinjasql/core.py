@@ -162,7 +162,11 @@ class JinjaSql(object):
         self.env.filters["inclause"] = bind_in_clause
 
     def prepare_query(self, source, data):
-        template = self.env.from_string(source)
+        if isinstance(source, Template):
+            template = source
+        else:
+            template = self.env.from_string(source)
+
         return self._prepare_query(template, data)
 
     def _prepare_query(self, template, data):
