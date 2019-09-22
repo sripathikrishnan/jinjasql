@@ -48,15 +48,15 @@ class SqlExtension(Extension):
 
     def filter_stream(self, stream):
         """
-        We convert 
+        We convert
         {{ some.variable | filter1 | filter 2}}
-            to 
+            to
         {{ some.variable | filter1 | filter 2 | bind}}
-        
+
         ... for all variable declarations in the template
 
-        This function is called by jinja2 immediately 
-        after the lexing stage, but before the parser is called. 
+        This function is called by jinja2 immediately
+        after the lexing stage, but before the parser is called.
         """
         while not stream.eos:
             token = next(stream)
@@ -68,7 +68,7 @@ class SqlExtension(Extension):
                 variable_end = token
 
                 last_token = var_expr[-1]
-                if (not last_token.test("name") 
+                if (not last_token.test("name")
                     or not last_token.value in ('bind', 'inclause', 'sqlsafe')):
                     param_name = self.extract_param_name(var_expr)
                     # don't bind twice
@@ -83,13 +83,13 @@ class SqlExtension(Extension):
                     yield token
             else:
                 yield token
- 
+
 
 def _bind_param(already_bound, key, value):
     new_key = key
     new_key = "%s#%s" % (key, random.getrandbits(128))
     already_bound[new_key] = value
-    
+
     param_style = _thread_local.param_style
     if param_style == 'qmark':
         return "?"
@@ -153,16 +153,16 @@ class JinjaSql(object):
             del _thread_local.param_index
 
     def bind(self, value, name):
-        """A filter that prints %s, and stores the value 
+        """A filter that prints %s, and stores the value
         in an array, so that it can be bound using a prepared statement
 
-        This filter is automatically applied to every {{variable}} 
+        This filter is automatically applied to every {{variable}}
         during the lexing stage, so developers can't forget to bind
         """
         if isinstance(value, Markup):
             return value
         elif requires_in_clause(value):
-            raise MissingInClauseException("""Got a list or tuple. 
+            raise MissingInClauseException("""Got a list or tuple.
                 Did you forget to apply '|inclause' to your query?""")
         else:
             return _bind_param(_thread_local.bind_params, name, value)
@@ -179,7 +179,7 @@ class JinjaSql(object):
         results = []
         for v in values:
             results.append(_bind_param(_thread_local.bind_params, "inclause", v))
-        
+
         clause = ",".join(results)
         clause = "(" + clause + ")"
         return clause
