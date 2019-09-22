@@ -48,15 +48,15 @@ class SqlExtension(Extension):
 
     def filter_stream(self, stream):
         """
-        We convert 
+        We convert
         {{ some.variable | filter1 | filter 2}}
-            to 
+            to
         {{ some.variable | filter1 | filter 2 | bind}}
-        
+
         ... for all variable declarations in the template
 
-        This function is called by jinja2 immediately 
-        after the lexing stage, but before the parser is called. 
+        This function is called by jinja2 immediately
+        after the lexing stage, but before the parser is called.
         """
         while not stream.eos:
             token = next(stream)
@@ -68,7 +68,7 @@ class SqlExtension(Extension):
                 variable_end = token
 
                 last_token = var_expr[-1]
-                if (not last_token.test("name") 
+                if (not last_token.test("name")
                     or not last_token.value in ('bind', 'inclause', 'sqlsafe')):
                     param_name = self.extract_param_name(var_expr)
                     # don't bind twice
@@ -84,41 +84,12 @@ class SqlExtension(Extension):
             else:
                 yield token
 
-def sql_safe(value):
-    """Filter to mark the value of an expression as safe for inserting
-    in a SQL statement"""
-    return Markup(value)
-
-def bind(value, name):
-    """A filter that prints %s, and stores the value 
-    in an array, so that it can be bound using a prepared statement
-
-    This filter is automatically applied to every {{variable}} 
-    during the lexing stage, so developers can't forget to bind
-    """
-    if isinstance(value, Markup):
-        return value
-    elif requires_in_clause(value):
-        raise MissingInClauseException("""Got a list or tuple. 
-            Did you forget to apply '|inclause' to your query?""")
-    else:
-        return _bind_param(_thread_local.bind_params, name, value)
-    
-def bind_in_clause(value):
-    values = list(value)
-    results = []
-    for v in values:
-        results.append(_bind_param(_thread_local.bind_params, "inclause", v))
-    
-    clause = ",".join(results)
-    clause = "(" + clause + ")"
-    return clause
 
 def _bind_param(already_bound, key, value):
     new_key = key
     new_key = "%s#%s" % (key, random.getrandbits(128))
     already_bound[new_key] = value
-    
+
     param_style = _thread_local.param_style
     if param_style == 'qmark':
         return "?"
@@ -148,18 +119,19 @@ class JinjaSql(object):
     # format "where name = %s"
     # pyformat "where name = %(name)s"
     VALID_PARAM_STYLES = ('qmark', 'numeric', 'named', 'format', 'pyformat')
-    def __init__(self, env=None, param_style='format'):
+    def __init__(self, env=None, param_style='format', extended_array_support=False):
         self.env = env or Environment()
         self._prepare_environment()
         self.param_style = param_style
+        self.extended_array_support = extended_array_support
 
     def _prepare_environment(self):
         self.env.autoescape=True
         self.env.add_extension(SqlExtension)
         self.env.add_extension('jinja2.ext.autoescape')
-        self.env.filters["bind"] = bind
-        self.env.filters["sqlsafe"] = sql_safe
-        self.env.filters["inclause"] = bind_in_clause
+        self.env.filters["bind"] = self.bind
+        self.env.filters["sqlsafe"] = self.sql_safe
+        self.env.filters["inclause"] = self.bind_in_clause
 
     def prepare_query(self, source, data):
         template = self.env.from_string(source)
@@ -180,3 +152,35 @@ class JinjaSql(object):
             del _thread_local.bind_params
             del _thread_local.param_style
             del _thread_local.param_index
+
+    def bind(self, value, name):
+        """A filter that prints %s, and stores the value
+        in an array, so that it can be bound using a prepared statement
+
+        This filter is automatically applied to every {{variable}}
+        during the lexing stage, so developers can't forget to bind
+        """
+        if isinstance(value, Markup):
+            return value
+        elif requires_in_clause(value) and not self.extended_array_support:
+            raise MissingInClauseException("""Got a list or tuple.
+                Did you forget to apply '|inclause' to your query?""")
+        else:
+            return _bind_param(_thread_local.bind_params, name, value)
+
+    @staticmethod
+    def sql_safe(value):
+        """Filter to mark the value of an expression as safe for inserting
+        in a SQL statement"""
+        return Markup(value)
+
+    @staticmethod
+    def bind_in_clause(value):
+        values = list(value)
+        results = []
+        for v in values:
+            results.append(_bind_param(_thread_local.bind_params, "inclause", v))
+
+        clause = ",".join(results)
+        clause = "(" + clause + ")"
+        return clause
