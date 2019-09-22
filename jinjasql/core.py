@@ -119,10 +119,11 @@ class JinjaSql(object):
     # format "where name = %s"
     # pyformat "where name = %(name)s"
     VALID_PARAM_STYLES = ('qmark', 'numeric', 'named', 'format', 'pyformat')
-    def __init__(self, env=None, param_style='format'):
+    def __init__(self, env=None, param_style='format', extended_array_support=False):
         self.env = env or Environment()
         self._prepare_environment()
         self.param_style = param_style
+        self.extended_array_support = extended_array_support
 
     def _prepare_environment(self):
         self.env.autoescape=True
@@ -161,7 +162,7 @@ class JinjaSql(object):
         """
         if isinstance(value, Markup):
             return value
-        elif requires_in_clause(value):
+        elif requires_in_clause(value) and not self.extended_array_support:
             raise MissingInClauseException("""Got a list or tuple.
                 Did you forget to apply '|inclause' to your query?""")
         else:
