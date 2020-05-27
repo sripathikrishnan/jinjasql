@@ -184,9 +184,10 @@ class JinjaSql(object):
             query = template.render(data)
             bind_params = _thread_local.bind_params
             if self.param_style in ('named', 'pyformat'):
-                return query, bind_params
+                bind_params = dict(bind_params)
             else:
-                return query, bind_params.values()
+                bind_params = list(bind_params.values())
+            return query, bind_params
         finally:
             del _thread_local.bind_params
             del _thread_local.param_style
