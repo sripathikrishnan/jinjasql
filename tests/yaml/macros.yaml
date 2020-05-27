@@ -1,3 +1,18 @@
+name: test_asyncpg_format
+template: >
+    SELECT project, timesheet, hours
+    FROM timesheet
+    WHERE project_id = {{request.project_id}} 
+    and user_id = {{ session.user_id }}
+expected_sql: 
+    asyncpg: >
+        SELECT project, timesheet, hours
+        FROM timesheet
+        WHERE project_id = $1 
+        and user_id = $2
+expected_params:
+    as_list: [123, 'sripathi']
+    
 ---
 name: test_string_contatenation
 template: >

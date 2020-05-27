@@ -188,7 +188,7 @@ class JinjaSql(object):
             bind_params = _thread_local.bind_params
             if self.param_style in ('named', 'pyformat'):
                 bind_params = dict(bind_params)
-            else:
+            elif self.param_style in ('qmark', 'numeric', 'format', 'asyncpg'):
                 bind_params = list(bind_params.values())
             return query, bind_params
         finally:
