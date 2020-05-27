@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy: 
       matrix:
-        python-version: [2.7, 3.4, 3.5, 3.6, 3.7, 3.8]
+        python-version: [2.7, 3.5, 3.6, 3.7, 3.8]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
@@ -14,11 +14,9 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        working-directory: squealy-core
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: Unit Tests
-        working-directory: squealy-core
         run: python run_tests
       
