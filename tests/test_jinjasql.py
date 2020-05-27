@@ -80,10 +80,8 @@ class JinjaSqlTest(unittest.TestCase):
 
     def test_precompiled_template(self):
         source = "select * from dummy where project_id = {{ request.project_id }}"
-
         j = JinjaSql()
         query, bind_params = j.prepare_query(j.env.from_string(source), _DATA)
-
         expected_query = "select * from dummy where project_id = %s"
         self.assertEquals(query.strip(), expected_query.strip())
 
