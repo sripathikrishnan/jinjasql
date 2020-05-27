@@ -51,9 +51,12 @@ class SqlExtension(Extension):
         We convert 
         {{ some.variable | filter1 | filter 2}}
             to 
-        {{ some.variable | filter1 | filter 2 | bind}}
+        {{ ( some.variable | filter1 | filter 2 ) | bind}}
         
         ... for all variable declarations in the template
+
+        Note the extra ( and ). We want the | bind to apply to the entire value, not just the last value.
+        The parentheses are mostly redundant, except in expressions like {{ '%' ~ myval ~ '%' }}
 
         This function is called by jinja2 immediately 
         after the lexing stage, but before the parser is called. 
@@ -68,15 +71,19 @@ class SqlExtension(Extension):
                 variable_end = token
 
                 last_token = var_expr[-1]
+                lineno = last_token.lineno
+                # don't bind twice
                 if (not last_token.test("name") 
                     or not last_token.value in ('bind', 'inclause', 'sqlsafe')):
                     param_name = self.extract_param_name(var_expr)
-                    # don't bind twice
-                    var_expr.append(Token(10, 'pipe', u'|'))
-                    var_expr.append(Token(10, 'name', u'bind'))
-                    var_expr.append(Token(2, 'lparen', u'('))
-                    var_expr.append(Token(10, 'string', param_name))
-                    var_expr.append(Token(2, 'rparen', u')'))
+                    
+                    var_expr.insert(1, Token(lineno, 'lparen', u'('))
+                    var_expr.append(Token(lineno, 'rparen', u')'))
+                    var_expr.append(Token(lineno, 'pipe', u'|'))
+                    var_expr.append(Token(lineno, 'name', u'bind'))
+                    var_expr.append(Token(lineno, 'lparen', u'('))
+                    var_expr.append(Token(lineno, 'string', param_name))
+                    var_expr.append(Token(lineno, 'rparen', u')'))
 
                 var_expr.append(variable_end)
                 for token in var_expr:

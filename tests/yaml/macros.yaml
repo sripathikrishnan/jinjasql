@@ -1,4 +1,18 @@
 ---
+name: test_string_contatenation
+template: >
+    SELECT *
+    FROM users
+    WHERE user_name like {{ '%' ~ session.user_id ~ '%' }}
+expected_sql: 
+    format: >
+        SELECT *
+        FROM users
+        WHERE user_name like %s
+expected_params:
+    as_list: ['%sripathi%']
+
+---
 name: test_bind_parameters
 template: >
     SELECT project, timesheet, hours

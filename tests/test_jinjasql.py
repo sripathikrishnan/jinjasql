@@ -5,7 +5,7 @@ from jinja2 import Environment
 from jinjasql import JinjaSql
 from jinjasql.core import MissingInClauseException, InvalidBindParameterException
 from datetime import date
-from yaml import load_all
+from yaml import safe_load_all
 from os.path import dirname, abspath, join
 
 
@@ -81,7 +81,7 @@ class JinjaSqlTest(unittest.TestCase):
 def generate_yaml_tests():
     file_path = join(YAML_TESTS_ROOT, "macros.yaml")
     with open(file_path) as f:
-        configs = load_all(f)
+        configs = safe_load_all(f)
         for config in configs:
             yield (config['name'], _generate_test(config))
 
