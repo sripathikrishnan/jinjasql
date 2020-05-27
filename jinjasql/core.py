@@ -122,8 +122,8 @@ def bind_in_clause(value):
     return clause
 
 def _bind_param(already_bound, key, value):
-    new_key = key
-    new_key = "%s#%s" % (key, random.getrandbits(128))
+    _thread_local.param_index += 1
+    new_key = "%s_%s" % (key, _thread_local.param_index)
     already_bound[new_key] = value
     
     param_style = _thread_local.param_style
@@ -132,14 +132,12 @@ def _bind_param(already_bound, key, value):
     elif param_style == 'format':
         return "%s"
     elif param_style == 'numeric':
-        _thread_local.param_index += 1
         return ":%s" % _thread_local.param_index
     elif param_style == 'named':
         return ":%s" % new_key
     elif param_style == 'pyformat':
         return "%%(%s)s" % new_key
     elif param_style == 'asyncpg':
-        _thread_local.param_index += 1
         return "$%s" % _thread_local.param_index
     else:
         raise AssertionError("Invalid param_style - %s" % param_style)

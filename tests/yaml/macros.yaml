@@ -70,12 +70,12 @@ expected_sql:
     numeric: >
         select * from timesheet 
         where day in (:1,:2,:3,:4,:5)
-    numeric: >
+    named: >
         select * from timesheet 
-        where day in (:1,:2,:3,:4,:5)
-    numeric: >
+        where day in (:inclause_1,:inclause_2,:inclause_3,:inclause_4,:inclause_5)
+    pyformat: >
         select * from timesheet 
-        where day in (:1,:2,:3,:4,:5)
+        where day in (%(inclause_1)s,%(inclause_2)s,%(inclause_3)s,%(inclause_4)s,%(inclause_5)s)
 ---
 name: test_macros
 template: >
