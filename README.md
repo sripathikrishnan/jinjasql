@@ -11,7 +11,7 @@ JinjaSQL automatically binds parameters that are inserted into the template.
 After JinjaSQL evaluates the template, you get:
 
 1. A Query with %s placeholders for the parameters
-2. A List of values corresponding to the placeholdersthat need to be bound to the query
+2. A List of values corresponding to the placeholders that need to be bound to the query
 
 JinjaSQL doesn't actually execute the query - it only prepares the 
 query and the bind parameters. You can execute the query using any 
