@@ -85,6 +85,16 @@ class JinjaSqlTest(unittest.TestCase):
         expected_query = "select * from dummy where project_id = %s"
         self.assertEquals(query.strip(), expected_query.strip())
 
+    def test_large_inclause(self):
+        num_of_params = 50000
+        alphabets = ['A'] * num_of_params
+        source = "SELECT 'x' WHERE 'A' in {{alphabets | inclause}}"
+        j = JinjaSql()
+        query, bind_params = j.prepare_query(source, {"alphabets": alphabets})
+        self.assertEquals(len(bind_params), num_of_params)
+        self.assertEquals(query, "SELECT 'x' WHERE 'A' in (" + "%s," * (num_of_params - 1) + "%s)")
+
+
 def generate_yaml_tests():
     file_path = join(YAML_TESTS_ROOT, "macros.yaml")
     with open(file_path) as f:
