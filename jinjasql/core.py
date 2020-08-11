@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+from jinja2 import contextfilter
 from jinja2 import Environment
 from jinja2 import Template
 from jinja2.ext import Extension
@@ -30,6 +31,11 @@ class InvalidBindParameterException(JinjaSqlException):
     pass
 
 class SqlExtension(Extension):
+    def __init__(self, environment):
+        super().__init__(environment)
+        environment.extend(
+            db_engine='postgres'
+        )
 
     def extract_param_name(self, tokens):
         name = ""
@@ -76,7 +82,7 @@ class SqlExtension(Extension):
                 if (not last_token.test("name") 
                     or not last_token.value in ('bind', 'inclause', 'sqlsafe')):
                     param_name = self.extract_param_name(var_expr)
-                    
+
                     var_expr.insert(1, Token(lineno, 'lparen', u'('))
                     var_expr.append(Token(lineno, 'rparen', u')'))
                     var_expr.append(Token(lineno, 'pipe', u'|'))
@@ -96,6 +102,26 @@ def sql_safe(value):
     in a SQL statement"""
     return Markup(value)
 
+@contextfilter
+def identifier(context, *values):
+    """A filter that escapes a SQL identifier, usually database objects
+    such as tables or fields"""
+    available = {
+        'postgres': escape_postgres,
+    }
+    try:
+        return available[context.eval_ctx.db_engine](values)
+    except KeyError:
+        raise ValueError(
+            'Supported db_engine values are: '
+            f'{", ".join(context.eval_ctx.db_engine.keys())}'
+        )
+
+def escape_postgres(*values):
+    def escape_double_quotes(value):
+        return value.replace('"', '""')
+    return '.'.join(f'"{escape_double_quotes(value)}"' for value in values)
+
 def bind(value, name):
     """A filter that prints %s, and stores the value 
     in an array, so that it can be bound using a prepared statement
@@ -110,13 +136,13 @@ def bind(value, name):
             Did you forget to apply '|inclause' to your query?""")
     else:
         return _bind_param(_thread_local.bind_params, name, value)
-    
+
 def bind_in_clause(value):
     values = list(value)
     results = []
     for v in values:
         results.append(_bind_param(_thread_local.bind_params, "inclause", v))
-    
+
     clause = ",".join(results)
     clause = "(" + clause + ")"
     return clause
@@ -125,7 +151,7 @@ def _bind_param(already_bound, key, value):
     _thread_local.param_index += 1
     new_key = "%s_%s" % (key, _thread_local.param_index)
     already_bound[new_key] = value
-    
+
     param_style = _thread_local.param_style
     if param_style == 'qmark':
         return "?"

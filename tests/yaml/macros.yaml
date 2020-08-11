@@ -50,6 +50,18 @@ expected_sql:
     format: SELECT project, timesheet, hours FROM timesheet
 
 ---
+name: test_identifier_filter
+template: SELECT {{ids.field1 | identifier}}, {{ids.field2 | identifier}} FROM {{(ids.schema, ids.table) | identifier}}
+expected_sql:
+    format: SELECT "id", "name" FROM "public"."users"
+
+---
+name: test_identifier_filter_with_malicious_values
+template: SELECT {{malicious.field | identifier}} id FROM {{malicious.table | identifier}}
+expected_sql:
+    format: SELECT "id"" FROM users; drop table users; --" FROM "users; drop table users; --"
+
+---
 name: test_html_characters_are_not_escaped
 template: select 'x' from dual where X {{etc.lt | sqlsafe}} 1
 expected_sql:

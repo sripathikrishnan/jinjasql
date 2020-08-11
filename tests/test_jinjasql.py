@@ -16,7 +16,16 @@ _DATA = {
         "columns": "project, timesheet, hours",
         "lt": "<",
         "gt": ">",
-
+    },
+    "ids": {
+        "field1": "id",
+        "field2": "name",
+        "table": "users",
+        "schema": "public",
+    },
+    "malicious": {
+        "table": "users; drop table users; --",
+        "field": "id\" FROM users; drop table users; --"
     },
     "request": {
         "project": {
@@ -64,7 +73,7 @@ class JinjaSqlTest(unittest.TestCase):
 
     def test_include(self):
         where_clause = """where project_id = {{request.project_id}}"""
-        
+
         source = """
         select * from dummy {% include 'where_clause.sql' %}
         """
