@@ -34,7 +34,7 @@ class SqlExtension(Extension):
     def __init__(self, environment):
         super().__init__(environment)
         environment.extend(
-            db_engine='postgres'
+            db_engine='postgres',
         )
 
     def extract_param_name(self, tokens):
@@ -113,14 +113,15 @@ def identifier(context, *values):
         return available[context.eval_ctx.db_engine](values)
     except KeyError:
         raise ValueError(
-            'Supported db_engine values are: '
-            f'{", ".join(context.eval_ctx.db_engine.keys())}'
+            'Supported db_engine values are: {}'.format(
+                ", ".join(context.eval_ctx.db_engine.keys())
+            )
         )
 
 def escape_postgres(*values):
     def escape_double_quotes(value):
         return value.replace('"', '""')
-    return '.'.join(f'"{escape_double_quotes(value)}"' for value in values)
+    return '.'.join('"{}"'.format(escape_double_quotes(value)) for value in values)
 
 def bind(value, name):
     """A filter that prints %s, and stores the value 
