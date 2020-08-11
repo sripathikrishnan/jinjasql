@@ -112,9 +112,8 @@ def identifier(value):
             )
         )
 
-def escape_postgres(values):
-    if isinstance(values, str):
-        values = (values, )
+def escape_postgres(tuple_or_str):
+    values = (tuple_or_str, ) if isinstance(tuple_or_str, str) else tuple_or_str
     def escape_double_quotes(value):
         return value.replace('"', '""')
     return Markup('.'.join('"{}"'.format(escape_double_quotes(value)) for value in values))
