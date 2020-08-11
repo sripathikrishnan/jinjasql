@@ -31,11 +31,6 @@ class InvalidBindParameterException(JinjaSqlException):
     pass
 
 class SqlExtension(Extension):
-    def __init__(self, environment):
-        super(SqlExtension, self).__init__(environment)
-        environment.extend(
-            db_engine='postgres',
-        )
 
     def extract_param_name(self, tokens):
         name = ""
@@ -102,19 +97,18 @@ def sql_safe(value):
     in a SQL statement"""
     return Markup(value)
 
-@contextfilter
-def identifier(context, *values):
+def identifier(*values):
     """A filter that escapes a SQL identifier, usually database objects
     such as tables or fields"""
     available = {
         'postgres': escape_postgres,
     }
     try:
-        return available[context.eval_ctx.db_engine](values)
+        return available[_thread_local.db_engine](values)
     except KeyError:
         raise ValueError(
             'Supported db_engine values are: {}'.format(
-                ", ".join(context.eval_ctx.db_engine.keys())
+                ", ".join(available.keys())
             )
         )
 
@@ -183,10 +177,11 @@ class JinjaSql(object):
     # format "where name = %s"
     # pyformat "where name = %(name)s"
     VALID_PARAM_STYLES = ('qmark', 'numeric', 'named', 'format', 'pyformat', 'asyncpg')
-    def __init__(self, env=None, param_style='format'):
+    def __init__(self, env=None, param_style='format', db_engine='postgres'):
         self.env = env or Environment()
         self._prepare_environment()
         self.param_style = param_style
+        self.db_engine = db_engine
 
     def _prepare_environment(self):
         self.env.autoescape = True
@@ -210,6 +205,7 @@ class JinjaSql(object):
             _thread_local.bind_params = OrderedDict()
             _thread_local.param_style = self.param_style
             _thread_local.param_index = 0
+            _thread_local.db_engine = self.db_engine
             query = template.render(data)
             bind_params = _thread_local.bind_params
             if self.param_style in ('named', 'pyformat'):
@@ -221,3 +217,4 @@ class JinjaSql(object):
             del _thread_local.bind_params
             del _thread_local.param_style
             del _thread_local.param_index
+            del _thread_local.db_engine
