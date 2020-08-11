@@ -113,7 +113,7 @@ def identifier(value):
         )
 
 def escape_postgres(values):
-    if isintance(values, str):
+    if isinstance(values, str):
         values = (values, )
     def escape_double_quotes(value):
         return value.replace('"', '""')
