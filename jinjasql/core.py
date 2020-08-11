@@ -32,7 +32,7 @@ class InvalidBindParameterException(JinjaSqlException):
 
 class SqlExtension(Extension):
     def __init__(self, environment):
-        super().__init__(environment)
+        super(SqlExtension, self).__init__(environment)
         environment.extend(
             db_engine='postgres',
         )
@@ -121,7 +121,7 @@ def identifier(context, *values):
 def escape_postgres(*values):
     def escape_double_quotes(value):
         return value.replace('"', '""')
-    return '.'.join('"{}"'.format(escape_double_quotes(value)) for value in values)
+    return Markup('.'.join('"{}"'.format(escape_double_quotes(value)) for value in values))
 
 def bind(value, name):
     """A filter that prints %s, and stores the value 
@@ -189,7 +189,7 @@ class JinjaSql(object):
         self.param_style = param_style
 
     def _prepare_environment(self):
-        self.env.autoescape=True
+        self.env.autoescape = True
         self.env.add_extension(SqlExtension)
         self.env.add_extension('jinja2.ext.autoescape')
         self.env.filters["bind"] = bind
