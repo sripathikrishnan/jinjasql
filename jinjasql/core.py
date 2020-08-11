@@ -194,6 +194,7 @@ class JinjaSql(object):
         self.env.filters["bind"] = bind
         self.env.filters["sqlsafe"] = sql_safe
         self.env.filters["inclause"] = bind_in_clause
+        self.env.filters["identifier"] = identifier
 
     def prepare_query(self, source, data):
         if isinstance(source, Template):
