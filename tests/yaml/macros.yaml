@@ -51,7 +51,7 @@ expected_sql:
 
 ---
 name: test_identifier_filter
-template: SELECT {{ids.field1 | identifier}}, {{ids.field2 | identifier}} FROM {{(ids.schema, ids.table) | identifier}}
+template: SELECT {{ids.field1 | identifier}}, {{ids.field2 | identifier}} FROM {{ids.table | identifier}}
 expected_sql:
     format: SELECT "id", "name" FROM "public"."users"
 

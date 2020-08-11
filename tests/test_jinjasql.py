@@ -20,8 +20,7 @@ _DATA = {
     "ids": {
         "field1": "id",
         "field2": "name",
-        "table": "users",
-        "schema": "public",
+        "table": ("public", "users"),
     },
     "malicious": {
         "table": "users; drop table users; --",

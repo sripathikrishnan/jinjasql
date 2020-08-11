@@ -97,14 +97,14 @@ def sql_safe(value):
     in a SQL statement"""
     return Markup(value)
 
-def identifier(*values):
+def identifier(value):
     """A filter that escapes a SQL identifier, usually database objects
     such as tables or fields"""
     available = {
         'postgres': escape_postgres,
     }
     try:
-        return available[_thread_local.db_engine](values)
+        return available[_thread_local.db_engine](value)
     except KeyError:
         raise ValueError(
             'Supported db_engine values are: {}'.format(
@@ -112,7 +112,9 @@ def identifier(*values):
             )
         )
 
-def escape_postgres(*values):
+def escape_postgres(values):
+    if isintance(values, str):
+        values = (values, )
     def escape_double_quotes(value):
         return value.replace('"', '""')
     return Markup('.'.join('"{}"'.format(escape_double_quotes(value)) for value in values))
