@@ -102,6 +102,11 @@ class JinjaSqlTest(unittest.TestCase):
         self.assertEquals(len(bind_params), num_of_params)
         self.assertEquals(query, "SELECT 'x' WHERE 'A' in (" + "%s," * (num_of_params - 1) + "%s)")
 
+    def test_invalid_db_engine_raises_exception(self):
+        source = "SELECT {{field | identifier}} from table"
+        j = JinjaSql(db_engine='invalid')
+        self.assertRaises(ValueError, self.j.prepare_query, source, {'field': 'dummy'})
+
 
 def generate_yaml_tests():
     file_path = join(YAML_TESTS_ROOT, "macros.yaml")
