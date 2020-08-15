@@ -105,7 +105,7 @@ class JinjaSqlTest(unittest.TestCase):
     def test_invalid_db_engine_raises_exception(self):
         source = "SELECT {{field | identifier}} from table"
         j = JinjaSql(db_engine='invalid')
-        self.assertRaises(ValueError, self.j.prepare_query, source, {'field': 'dummy'})
+        self.assertRaises(ValueError, j.prepare_query, source, {'field': 'dummy'})
 
 
 def generate_yaml_tests():
