@@ -18,7 +18,7 @@ if sys.version_info >= (2, 7) and sys.version_info <= (3, 4):
                 where customer={{request.GET.customer}}"""
                 , {"request": request}
             )
-            self.assertEquals(bind_params, [u"/customer/details/", u"1232"])
+            self.assertEqual(bind_params, [u"/customer/details/", u"1232"])
 
 
     def configure_django():
