@@ -118,7 +118,7 @@ def bind_in_clause(value):
         results.append(_bind_param(_thread_local.bind_params, "inclause", v))
     
     clause = ",".join(results)
-    clause = "(" + clause + ")"
+    clause = "array[" + clause + "]"
     return clause
 
 def _bind_param(already_bound, key, value):
