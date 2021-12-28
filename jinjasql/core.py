@@ -155,6 +155,7 @@ class JinjaSql(object):
     # named "where name = :name"
     # format "where name = %s"
     # pyformat "where name = %(name)s"
+    # asyncpg "where name = $1"
     VALID_PARAM_STYLES = ('qmark', 'numeric', 'named', 'format', 'pyformat', 'asyncpg')
     def __init__(self, env=None, param_style='format'):
         self.env = env or Environment()
