@@ -58,9 +58,9 @@ class JinjaSqlTest(unittest.TestCase):
         j = JinjaSql(env)
         query, bind_params = j.prepare_query(source, _DATA)
         expected_query = "select * from dual WHERE dummy_col = %s"
-        self.assertEquals(query.strip(), expected_query.strip())
-        self.assertEquals(len(bind_params), 1)
-        self.assertEquals(list(bind_params)[0], 100)
+        self.assertEqual(query.strip(), expected_query.strip())
+        self.assertEqual(len(bind_params), 1)
+        self.assertEqual(list(bind_params)[0], 100)
 
     def test_include(self):
         where_clause = """where project_id = {{request.project_id}}"""
@@ -74,16 +74,16 @@ class JinjaSqlTest(unittest.TestCase):
         j = JinjaSql(env)
         query, bind_params = j.prepare_query(source, _DATA)
         expected_query = "select * from dummy where project_id = %s"
-        self.assertEquals(query.strip(), expected_query.strip())
-        self.assertEquals(len(bind_params), 1)
-        self.assertEquals(list(bind_params)[0], 123)
+        self.assertEqual(query.strip(), expected_query.strip())
+        self.assertEqual(len(bind_params), 1)
+        self.assertEqual(list(bind_params)[0], 123)
 
     def test_precompiled_template(self):
         source = "select * from dummy where project_id = {{ request.project_id }}"
         j = JinjaSql()
         query, bind_params = j.prepare_query(j.env.from_string(source), _DATA)
         expected_query = "select * from dummy where project_id = %s"
-        self.assertEquals(query.strip(), expected_query.strip())
+        self.assertEqual(query.strip(), expected_query.strip())
 
     def test_large_inclause(self):
         num_of_params = 50000
@@ -91,8 +91,8 @@ class JinjaSqlTest(unittest.TestCase):
         source = "SELECT 'x' WHERE 'A' in {{alphabets | inclause}}"
         j = JinjaSql()
         query, bind_params = j.prepare_query(source, {"alphabets": alphabets})
-        self.assertEquals(len(bind_params), num_of_params)
-        self.assertEquals(query, "SELECT 'x' WHERE 'A' in (" + "%s," * (num_of_params - 1) + "%s)")
+        self.assertEqual(len(bind_params), num_of_params)
+        self.assertEqual(query, "SELECT 'x' WHERE 'A' in (" + "%s," * (num_of_params - 1) + "%s)")
 
 
 def generate_yaml_tests():
@@ -114,9 +114,9 @@ def _generate_test(config):
                     expected_params = config['expected_params']['as_dict']
                 else:
                     expected_params = config['expected_params']['as_list']
-                self.assertEquals(list(bind_params), expected_params)
+                self.assertEqual(list(bind_params), expected_params)
 
-            self.assertEquals(query.strip(), expected_sql.strip())
+            self.assertEqual(query.strip(), expected_sql.strip())
 
     return yaml_test
 
