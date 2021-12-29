@@ -89,6 +89,33 @@ class JinjaSqlTest(unittest.TestCase):
         self.assertEqual(len(bind_params), num_of_params)
         self.assertEqual(query, "SELECT 'x' WHERE 'A' in (" + "%s," * (num_of_params - 1) + "%s)")
 
+    def test_identifier_filter(self):
+        j = JinjaSql()
+        template = 'select * from {{table_name | identifier}}'
+        
+        tests = [
+            ('users', 'select * from "users"'),
+            (('myschema', 'users'), 'select * from "myschema"."users"'),
+            ('a"b', 'select * from "a""b"'),
+            (('users',), 'select * from "users"'),
+        ]
+        for test in tests:
+            query, _ = j.prepare_query(template, {'table_name': test[0]})
+            self.assertEqual(query, test[1])
+
+
+    def test_identifier_filter_backtick(self):
+        j = JinjaSql(identifier_quote_character='`')
+        template = 'select * from {{table_name | identifier}}'
+        
+        tests = [
+            ('users', 'select * from `users`'),
+            (('myschema', 'users'), 'select * from `myschema`.`users`'),
+            ('a`b', 'select * from `a``b`'),
+        ]
+        for test in tests:
+            query, _ = j.prepare_query(template, {'table_name': test[0]})
+            self.assertEqual(query, test[1])
 
 def generate_yaml_tests():
     file_path = join(YAML_TESTS_ROOT, "macros.yaml")

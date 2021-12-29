@@ -4,6 +4,7 @@ from jinja2 import Template
 from jinja2.ext import Extension
 from jinja2.lexer import Token
 from jinja2.utils import Markup
+from collections.abc import Iterable
 
 try:
     from collections import OrderedDict
@@ -136,6 +137,23 @@ def _bind_param(already_bound, key, value):
     else:
         raise AssertionError("Invalid param_style - %s" % param_style)
 
+def build_escape_identifier_filter(identifier_quote_character):
+    def quote_and_escape(value):
+        # Escape double quote with 2 double quotes,
+        # or escape backtick with 2 backticks
+        return identifier_quote_character + \
+                value.replace(identifier_quote_character, identifier_quote_character*2) + \
+                identifier_quote_character
+
+    def identifier_filter(raw_identifier):
+        if isinstance(raw_identifier, str):
+            raw_identifier = (raw_identifier, )
+        if not isinstance(raw_identifier, Iterable):
+            raise ValueError("identifier filter expects a string or an Iterable")
+        return Markup('.'.join(quote_and_escape(s) for s in raw_identifier))
+
+    return identifier_filter
+
 def requires_in_clause(obj):
     return isinstance(obj, (list, tuple))
 
@@ -151,10 +169,14 @@ class JinjaSql(object):
     # pyformat "where name = %(name)s"
     # asyncpg "where name = $1"
     VALID_PARAM_STYLES = ('qmark', 'numeric', 'named', 'format', 'pyformat', 'asyncpg')
-    def __init__(self, env=None, param_style='format'):
+    VALID_ID_QUOTE_CHARS = ('`', '"')
+    def __init__(self, env=None, param_style='format', identifier_quote_character='"'):
+        self.param_style = param_style
+        if identifier_quote_character not in self.VALID_ID_QUOTE_CHARS:
+            raise ValueError("identifier_quote_characters must be one of " + VALID_ID_QUOTE_CHARS)
+        self.identifier_quote_character = identifier_quote_character
         self.env = env or Environment()
         self._prepare_environment()
-        self.param_style = param_style
 
     def _prepare_environment(self):
         self.env.autoescape=True
@@ -163,6 +185,7 @@ class JinjaSql(object):
         self.env.filters["bind"] = bind
         self.env.filters["sqlsafe"] = sql_safe
         self.env.filters["inclause"] = bind_in_clause
+        self.env.filters["identifier"] = build_escape_identifier_filter(self.identifier_quote_character)
 
     def prepare_query(self, source, data):
         if isinstance(source, Template):
