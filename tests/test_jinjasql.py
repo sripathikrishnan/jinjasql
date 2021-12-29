@@ -16,7 +16,15 @@ _DATA = {
         "columns": "project, timesheet, hours",
         "lt": "<",
         "gt": ">",
-
+    },
+    "ids": {
+        "field1": "id",
+        "field2": "name",
+        "table": ("public", "users"),
+    },
+    "malicious": {
+        "table": "users; drop table users; --",
+        "field": "id\" FROM users; drop table users; --"
     },
     "request": {
         "project": {
@@ -59,7 +67,7 @@ class JinjaSqlTest(unittest.TestCase):
 
     def test_include(self):
         where_clause = """where project_id = {{request.project_id}}"""
-        
+
         source = """
         select * from dummy {% include 'where_clause.sql' %}
         """
@@ -88,6 +96,11 @@ class JinjaSqlTest(unittest.TestCase):
         query, bind_params = j.prepare_query(source, {"alphabets": alphabets})
         self.assertEqual(len(bind_params), num_of_params)
         self.assertEqual(query, "SELECT 'x' WHERE 'A' in (" + "%s," * (num_of_params - 1) + "%s)")
+
+    def test_invalid_db_engine_raises_exception(self):
+        source = "SELECT {{field | identifier}} from table"
+        j = JinjaSql(db_engine='invalid')
+        self.assertRaises(ValueError, j.prepare_query, source, {'field': 'dummy'})
 
 
 def generate_yaml_tests():

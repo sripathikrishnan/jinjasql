@@ -185,6 +185,24 @@ select {{column_names | sqlsafe}} from dual
 
 If you use `sqlsafe`, it is your responsibility to ensure there is no sql injection.
 
+Alternatively, the `|identifier` filter can be used to produce escaped strings for safe usage of SQL identifiers such as table or column names. Since the escaping implementation is dependent on the database engine, use the optional constructor argument `db_engine` to control it:
+```python
+template = """
+select {{column1 | identifier}}, {{column2 | identifier}} from {{source | identifier}}
+"""
+j = JinjaSql(db_engine='postgres')
+query, bind_params = j.prepare_query(
+    template, {'column1': 'col1', 'column2': 'col2', 'source': ('a_schema', 'a_table')}
+)
+```
+
+Would result in the following query being rendered:
+```python
+expected_query = """
+select "col1", "col2" from "a_schema"."a_table"
+"""
+```
+
 ## Installing jinjasql ##
 
 Pre-Requisites : 

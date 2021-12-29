@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+from jinja2 import contextfilter
 from jinja2 import Environment
 from jinja2 import Template
 from jinja2.ext import Extension
@@ -73,7 +74,7 @@ class SqlExtension(Extension):
                 if (not last_token.test("name") 
                     or not last_token.value in ('bind', 'inclause', 'sqlsafe')):
                     param_name = self.extract_param_name(var_expr)
-                    
+
                     var_expr.insert(1, Token(lineno, 'lparen', u'('))
                     var_expr.append(Token(lineno, 'rparen', u')'))
                     var_expr.append(Token(lineno, 'pipe', u'|'))
@@ -93,6 +94,27 @@ def sql_safe(value):
     in a SQL statement"""
     return Markup(value)
 
+def identifier(value):
+    """A filter that escapes a SQL identifier, usually database objects
+    such as tables or fields"""
+    available = {
+        'postgres': escape_postgres,
+    }
+    try:
+        return available[_thread_local.db_engine](value)
+    except KeyError:
+        raise ValueError(
+            'Supported db_engine values are: {}'.format(
+                ", ".join(available.keys())
+            )
+        )
+
+def escape_postgres(tuple_or_str):
+    values = (tuple_or_str, ) if not isinstance(tuple_or_str, tuple) else tuple_or_str
+    def escape_double_quotes(value):
+        return value.replace('"', '""')
+    return Markup('.'.join('"{}"'.format(escape_double_quotes(value)) for value in values))
+
 def bind(value, name):
     """A filter that prints %s, and stores the value 
     in an array, so that it can be bound using a prepared statement
@@ -104,13 +126,13 @@ def bind(value, name):
         return value
     else:
         return _bind_param(_thread_local.bind_params, name, value)
-    
+
 def bind_in_clause(value):
     values = list(value)
     results = []
     for v in values:
         results.append(_bind_param(_thread_local.bind_params, "inclause", v))
-    
+
     clause = ",".join(results)
     clause = "(" + clause + ")"
     return clause
@@ -119,7 +141,7 @@ def _bind_param(already_bound, key, value):
     _thread_local.param_index += 1
     new_key = "%s_%s" % (key, _thread_local.param_index)
     already_bound[new_key] = value
-    
+
     param_style = _thread_local.param_style
     if param_style == 'qmark':
         return "?"
@@ -151,18 +173,20 @@ class JinjaSql(object):
     # pyformat "where name = %(name)s"
     # asyncpg "where name = $1"
     VALID_PARAM_STYLES = ('qmark', 'numeric', 'named', 'format', 'pyformat', 'asyncpg')
-    def __init__(self, env=None, param_style='format'):
+    def __init__(self, env=None, param_style='format', db_engine='postgres'):
         self.env = env or Environment()
         self._prepare_environment()
         self.param_style = param_style
+        self.db_engine = db_engine
 
     def _prepare_environment(self):
-        self.env.autoescape=True
+        self.env.autoescape = True
         self.env.add_extension(SqlExtension)
         self.env.add_extension('jinja2.ext.autoescape')
         self.env.filters["bind"] = bind
         self.env.filters["sqlsafe"] = sql_safe
         self.env.filters["inclause"] = bind_in_clause
+        self.env.filters["identifier"] = identifier
 
     def prepare_query(self, source, data):
         if isinstance(source, Template):
@@ -177,6 +201,7 @@ class JinjaSql(object):
             _thread_local.bind_params = OrderedDict()
             _thread_local.param_style = self.param_style
             _thread_local.param_index = 0
+            _thread_local.db_engine = self.db_engine
             query = template.render(data)
             bind_params = _thread_local.bind_params
             if self.param_style in ('named', 'pyformat'):
@@ -188,3 +213,4 @@ class JinjaSql(object):
             del _thread_local.bind_params
             del _thread_local.param_style
             del _thread_local.param_index
+            del _thread_local.db_engine
