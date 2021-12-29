@@ -23,9 +23,6 @@ random = Random()
 class JinjaSqlException(Exception):
     pass
 
-class MissingInClauseException(JinjaSqlException):
-    pass
-
 class InvalidBindParameterException(JinjaSqlException):
     pass
 
