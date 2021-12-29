@@ -37,11 +37,6 @@ class JinjaSqlTest(unittest.TestCase):
     def setUp(self):
         self.j = JinjaSql()
 
-    def test_missed_inclause_raises_exception(self):
-        source = """select * from timesheet 
-                    where day in {{request.days}}"""
-        self.assertRaises(MissingInClauseException, self.j.prepare_query, source, _DATA)
-
     def test_import(self):
         utils = """
         {% macro print_where(value) -%}

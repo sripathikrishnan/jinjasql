@@ -246,3 +246,16 @@ jinjasql is licensed under the MIT License. See [LICENSE](https://github.com/has
 ## Copyright 
 
 (c) 2020 HashedIn Technologies Pvt. Ltd.
+
+
+## Developer Notes
+
+JinjaSQL runs tests against a variety of databases and database drivers. It uses the testcontainers project to launch databases in docker containers.
+
+To setup your development environment and run the tests on an ubuntu machine:
+
+```bash
+sudo apt-get install gcc g++ python3-dev unixodbc unixodbc-dev 
+pip install -r requirements.txt
+python run_tests
+```

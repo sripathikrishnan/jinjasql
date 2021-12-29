@@ -105,9 +105,6 @@ def bind(value, name):
     """
     if isinstance(value, Markup):
         return value
-    elif requires_in_clause(value):
-        raise MissingInClauseException("""Got a list or tuple. 
-            Did you forget to apply '|inclause' to your query?""")
     else:
         return _bind_param(_thread_local.bind_params, name, value)
     
