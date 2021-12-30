@@ -28,18 +28,18 @@ sdict = {
     'version' : __version__,
     'description' : 'Generate SQL Queries and Corresponding Bind Parameters using a Jinja2 Template',
     'long_description' : long_description,
-    'url': 'https://github.com/hashedin/jinjasql',
-    'download_url' : 'http://cloud.github.com/downloads/hashedin/jinjasql/jinjasql-%s.tar.gz' % __version__,
+    'url': 'https://github.com/sripathikrishnan/jinjasql',
+    'download_url' : 'http://cloud.github.com/downloads/sripathikrishnan/jinjasql/jinjasql-%s.tar.gz' % __version__,
     'author' : 'Sripathi Krishnan',
-    'author_email' : 'Sripathi@hashedin.com',
+    'author_email' : 'Sripathi.Krishnan@gmail.com',
     'maintainer' : 'Sripathi Krishnan',
-    'maintainer_email' : 'Sripathi@hashedin.com',
+    'maintainer_email' : 'Sripathi.Krishnan@gmail.com',
     'keywords' : ['Jinja2', 'SQL', 'Python', 'Template'],
     'license' : 'MIT',
     'packages' : ['jinjasql'],
     'test_suite' : 'tests.all_tests',
     'install_requires': [
-        'Jinja2>=2.5'
+        'Jinja2>=2.5,<3.0'
     ],
     'classifiers' : [
         'Development Status :: 4 - Beta',

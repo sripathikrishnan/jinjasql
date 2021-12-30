@@ -1,6 +1,6 @@
 # Generate SQL Queries using a Jinja Template, without worrying about SQL Injection #
 
-[![Travis Build Status](https://travis-ci.org/hashedin/jinjasql.svg?branch=master)](https://travis-ci.org/hashedin/jinjasql)  [![Github Actions Build Status](https://github.com/hashedin/jinjasql/workflows/Tests/badge.svg)](https://github.com/hashedin/jinjasql/actions)
+[![Github Actions Build Status](https://github.com/sripathikrishnan/jinjasql/workflows/Tests/badge.svg)](https://github.com/sripathikrishnan/jinjasql/actions)
 
 JinjaSQL is a template language for SQL statements and scripts. 
 Since it's based in [Jinja2](http://jinja.pocoo.org/), 
@@ -198,7 +198,7 @@ To install from PyPI (recommended) :
     
 To install from source : 
 
-    git clone https://github.com/hashedin/jinjasql
+    git clone https://github.com/sripathikrishnan/jinjasql
     cd jinjasql
     sudo python setup.py install
 
@@ -241,11 +241,7 @@ JinjaSQL builds on this functionality. JinjaSQL requires autoescape to be turned
 
 ## License
 
-jinjasql is licensed under the MIT License. See [LICENSE](https://github.com/hashedin/jinjasql/blob/master/LICENSE)
-
-## Copyright 
-
-(c) 2020 HashedIn Technologies Pvt. Ltd.
+jinjasql is licensed under the MIT License. See [LICENSE](https://github.com/sripathikrishnan/jinjasql/blob/master/LICENSE)
 
 
 ## Developer Notes
