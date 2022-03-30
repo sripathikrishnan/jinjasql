@@ -181,7 +181,6 @@ class JinjaSql(object):
     def _prepare_environment(self):
         self.env.autoescape=True
         self.env.add_extension(SqlExtension)
-        self.env.add_extension('jinja2.ext.autoescape')
         self.env.filters["bind"] = bind
         self.env.filters["sqlsafe"] = sql_safe
         self.env.filters["inclause"] = bind_in_clause
