@@ -3,7 +3,7 @@ from jinja2 import Environment
 from jinja2 import Template
 from jinja2.ext import Extension
 from jinja2.lexer import Token
-from jinja2.utils import Markup
+from markupsafe import Markup
 from collections.abc import Iterable
 
 try:
