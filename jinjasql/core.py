@@ -3,7 +3,7 @@ from jinja2 import Environment
 from jinja2 import Template
 from jinja2.ext import Extension
 from jinja2.lexer import Token
-from jinja2.utils import Markup
+from jinja2.utils import markupsafe
 from collections.abc import Iterable
 
 try:
@@ -92,7 +92,7 @@ class SqlExtension(Extension):
 def sql_safe(value):
     """Filter to mark the value of an expression as safe for inserting
     in a SQL statement"""
-    return Markup(value)
+    return markupsafe.Markup(value)
 
 def bind(value, name):
     """A filter that prints %s, and stores the value 
@@ -101,7 +101,7 @@ def bind(value, name):
     This filter is automatically applied to every {{variable}} 
     during the lexing stage, so developers can't forget to bind
     """
-    if isinstance(value, Markup):
+    if isinstance(value, markupsafe.Markup):
         return value
     else:
         return _bind_param(_thread_local.bind_params, name, value)
@@ -150,7 +150,7 @@ def build_escape_identifier_filter(identifier_quote_character):
             raw_identifier = (raw_identifier, )
         if not isinstance(raw_identifier, Iterable):
             raise ValueError("identifier filter expects a string or an Iterable")
-        return Markup('.'.join(quote_and_escape(s) for s in raw_identifier))
+        return markupsafe.Markup('.'.join(quote_and_escape(s) for s in raw_identifier))
 
     return identifier_filter
 
@@ -173,7 +173,7 @@ class JinjaSql(object):
     def __init__(self, env=None, param_style='format', identifier_quote_character='"'):
         self.param_style = param_style
         if identifier_quote_character not in self.VALID_ID_QUOTE_CHARS:
-            raise ValueError("identifier_quote_characters must be one of " + VALID_ID_QUOTE_CHARS)
+            raise ValueError("identifier_quote_characters must be one of " + JinjaSql.VALID_ID_QUOTE_CHARS)
         self.identifier_quote_character = identifier_quote_character
         self.env = env or Environment()
         self._prepare_environment()
@@ -181,7 +181,6 @@ class JinjaSql(object):
     def _prepare_environment(self):
         self.env.autoescape=True
         self.env.add_extension(SqlExtension)
-        self.env.add_extension('jinja2.ext.autoescape')
         self.env.filters["bind"] = bind
         self.env.filters["sqlsafe"] = sql_safe
         self.env.filters["inclause"] = bind_in_clause
