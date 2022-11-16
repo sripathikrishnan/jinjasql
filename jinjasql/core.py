@@ -3,7 +3,7 @@ from jinja2 import Environment
 from jinja2 import Template
 from jinja2.ext import Extension
 from jinja2.lexer import Token
-from jinja2.utils import Markup
+from jinja2.utils import markupsafe
 from collections.abc import Iterable
 
 try:
@@ -92,7 +92,7 @@ class SqlExtension(Extension):
 def sql_safe(value):
     """Filter to mark the value of an expression as safe for inserting
     in a SQL statement"""
-    return Markup(value)
+    return markupsafe.Markup(value)
 
 def bind(value, name):
     """A filter that prints %s, and stores the value 
