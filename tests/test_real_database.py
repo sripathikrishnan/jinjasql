@@ -20,7 +20,7 @@ class PostgresTest(unittest.TestCase):
 
     def test_bind_array(self):
         'It should be possible to bind arrays in a query'
-        j = JinjaSql()
+        j = JinjaSql(param_style='named')
         data = {
             "some_num": 1,
             "some_array": [1,2,3]
