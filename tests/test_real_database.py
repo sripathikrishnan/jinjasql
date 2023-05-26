@@ -30,7 +30,7 @@ class PostgresTest(unittest.TestCase):
         """
         query, params = j.prepare_query(template, data)
         with self.engine.connect() as conn:
-            result = conn.execute(query, params).fetchone()
+            result = conn.execute(sqlalchemy.text(query), params).fetchone()
         self.assertTrue(result[0])
     
     def test_quoted_tables(self):
@@ -44,7 +44,7 @@ class PostgresTest(unittest.TestCase):
         """
         query, params = j.prepare_query(template, data)
         with self.engine.connect() as conn:
-            result = conn.execute(query, params).fetchall()
+            result = conn.execute(sqlalchemy.text(query), params).fetchall()
         self.assertEqual(len(result), 1)
 
 class MySqlTest(unittest.TestCase):
@@ -64,7 +64,7 @@ class MySqlTest(unittest.TestCase):
         """
         query, params = j.prepare_query(template, data)
         with self.engine.connect() as conn:
-            result = conn.execute(query, params).fetchall()
+            result = conn.execute(sqlalchemy.text(query), params).fetchall()
         self.assertEqual(len(result), 1)
 
 if __name__ == '__main__':
