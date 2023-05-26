@@ -20,7 +20,7 @@ class PostgresTest(unittest.TestCase):
 
     def test_bind_array(self):
         'It should be possible to bind arrays in a query'
-        j = JinjaSql()
+        j = JinjaSql(param_style='named')
         data = {
             "some_num": 1,
             "some_array": [1,2,3]
@@ -29,7 +29,8 @@ class PostgresTest(unittest.TestCase):
             SELECT {{some_num}} = ANY({{some_array}})
         """
         query, params = j.prepare_query(template, data)
-        result = self.engine.execute(query, params).fetchone()
+        with self.engine.connect() as conn:
+            result = conn.execute(sqlalchemy.text(query), params).fetchone()
         self.assertTrue(result[0])
     
     def test_quoted_tables(self):
@@ -42,7 +43,8 @@ class PostgresTest(unittest.TestCase):
             where table_name = 'pg_user'
         """
         query, params = j.prepare_query(template, data)
-        result = self.engine.execute(query, params).fetchall()
+        with self.engine.connect() as conn:
+            result = conn.execute(sqlalchemy.text(query), params).fetchall()
         self.assertEqual(len(result), 1)
 
 class MySqlTest(unittest.TestCase):
@@ -61,7 +63,8 @@ class MySqlTest(unittest.TestCase):
             where table_name = 'SESSION_STATUS'
         """
         query, params = j.prepare_query(template, data)
-        result = self.engine.execute(query, params).fetchall()
+        with self.engine.connect() as conn:
+            result = conn.execute(sqlalchemy.text(query), params).fetchall()
         self.assertEqual(len(result), 1)
 
 if __name__ == '__main__':
